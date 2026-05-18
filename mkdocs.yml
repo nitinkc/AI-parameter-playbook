@@ -1,0 +1,117 @@
+site_name: AI Parameter Playbook — Learn LLM Parameters
+site_description: Understand LLM parameters through hands-on local experiments. No API keys required to start.
+repo_url: https://example.invalid/replace-me
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+#    - toc.integrate
+    - search.highlight
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+
+markdown_extensions:
+  - pymdownx.snippets:
+      base_path:
+        - docs
+  - abbr
+  - admonition
+  - attr_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.arithmatex:
+      generic: true
+      block_syntax:
+        - dollar
+        - square
+      inline_syntax:
+        - dollar
+        - round
+      smart_dollar: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - "🎓 Learning Path (Free & Local-First)":
+      - Overview: learning/overview.md
+      - Experiment 1 - Temperature Sweep: learning/01-temperature.md
+      - Experiment 2 - Top-p (Nucleus) Sweep: learning/02-top-p.md
+      - Experiment 3 - Top-k Sweep: learning/03-top-k.md
+      - Experiment 4 - Combined Filters: learning/04-combined.md
+      - Experiment 5 - Repetition Penalties: learning/05-repetition.md
+      - Experiment 6 - Real Use Cases: learning/06-use-cases.md
+  - "⚙️ Parameter Reference":
+       - Parameter Map: parameters/parameter-map.md
+       - Decoding Controls: parameters/decoding.md
+       - Repetition & Novelty: parameters/repetition.md
+       - Length, Stops & Cost: parameters/length-stops.md
+       - Determinism & Debugging: parameters/determinism-debugging.md
+       - Structured Outputs & Tools: parameters/structured-tools.md
+       - Cloud Platform Equivalence: parameters/cloud-equivalence.md
+  - "🧪 Interactive Playgrounds":
+      - Local Sampling Simulator Guide: playgrounds/simulator-guide.md
+      - Running Experiments Locally: playgrounds/experiment-harness.md
+  - "🧮 Math Foundations":
+      - Overview (Planned): math-foundations/README.md
+      - Roadmap: math-foundations/roadmap.md
+  - "💼 Use Cases & Decision Guides":
+      - 1) Summarization: use-cases/summarization.md
+      - 2) RAG / Grounded Q&A: use-cases/rag-qa.md
+      - 3) Classification & Routing: use-cases/classification.md
+      - 4) Code Generation: use-cases/code-generation.md
+      - Executive Decision Guide: use-cases/executive-decisions.md
+  - "☁️ Cloud Experiments (4 Platforms)":
+      - Multi-Cloud Overview: cloud/overview.md
+      - Azure OpenAI:
+          - Setup: setup/overview.md
+          - Authentication & Endpoints: setup/auth-endpoints.md
+          - Runtime Configuration: setup/runtime-config.md
+      - OpenAI:
+          - Setup: cloud/openai/setup.md
+      - Google Vertex AI:
+          - Setup: cloud/google/setup.md
+      - Amazon Bedrock:
+          - Setup: cloud/amazon/setup.md
+      - Running Experiments:
+          - How Experiments Work: experiments/approach.md
+          - Quickstart (REST Runner): experiments/quickstart-rest.md
+          - Preset Sweeps (4 Use Cases): experiments/presets.md
+          - Metrics & Analysis: experiments/metrics.md
+          - Logging & Governance: experiments/logging-governance.md
+

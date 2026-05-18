@@ -1,0 +1,15 @@
+/* Small refinements: keep it subtle */
+.md-typeset code { font-size: .9em; }
+.md-typeset h1 { font-weight: 700; }
+
+/* Markdown abbreviations (abbr extension) */
+.md-typeset abbr {
+  text-decoration: underline dotted;
+  cursor: help;
+}
+
+/* Keep display equations centered and scroll-safe */
+.md-typeset .arithmatex {
+  overflow-x: auto;
+}
+
