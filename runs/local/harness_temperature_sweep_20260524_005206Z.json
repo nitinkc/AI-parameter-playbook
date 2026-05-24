@@ -1,0 +1,95 @@
+{
+  "metadata": {
+    "created_at_utc": "20260524_005206Z",
+    "preset": "temperature_sweep",
+    "samples": 10000,
+    "seed": 42,
+    "scenario_file": null
+  },
+  "results": [
+    {
+      "name": "T=0.1",
+      "temperature": 0.1,
+      "top_k": 0,
+      "top_p": 1.0,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 0.094869,
+      "top_token": "approve",
+      "top_token_prob": 0.9813,
+      "viable_tokens": 3
+    },
+    {
+      "name": "T=0.2",
+      "temperature": 0.2,
+      "top_k": 0,
+      "top_p": 1.0,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 0.455946,
+      "top_token": "approve",
+      "top_token_prob": 0.8643,
+      "viable_tokens": 4
+    },
+    {
+      "name": "T=0.5",
+      "temperature": 0.5,
+      "top_k": 0,
+      "top_p": 1.0,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 1.183414,
+      "top_token": "approve",
+      "top_token_prob": 0.5641,
+      "viable_tokens": 10
+    },
+    {
+      "name": "T=1",
+      "temperature": 1.0,
+      "top_k": 0,
+      "top_p": 1.0,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 1.807128,
+      "top_token": "approve",
+      "top_token_prob": 0.3461,
+      "viable_tokens": 10
+    },
+    {
+      "name": "T=1.5",
+      "temperature": 1.5,
+      "top_k": 0,
+      "top_p": 1.0,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 2.046808,
+      "top_token": "approve",
+      "top_token_prob": 0.264,
+      "viable_tokens": 10
+    },
+    {
+      "name": "T=2",
+      "temperature": 2.0,
+      "top_k": 0,
+      "top_p": 1.0,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 2.166652,
+      "top_token": "approve",
+      "top_token_prob": 0.202,
+      "viable_tokens": 10
+    }
+  ]
+}

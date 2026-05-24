@@ -4,7 +4,7 @@
 
 /* Markdown abbreviations (abbr extension) */
 .md-typeset abbr {
-  text-decoration: underline dotted;
+  text-decoration: dotted;
   cursor: help;
 }
 

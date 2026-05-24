@@ -5,16 +5,16 @@
 set -e
 
 PLAYBOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV_DOCS="$PLAYBOOK_DIR/.venv-docs"
+VENV_DOCS="$PLAYBOOK_DIR/.venv"
 
 if [ ! -d "$VENV_DOCS" ]; then
-  echo "Creating .venv-docs..."
+  echo "Creating .venv..."
   python3 -m venv "$VENV_DOCS"
 fi
 
 if [ ! -f "$VENV_DOCS/bin/mkdocs" ]; then
   echo "Installing docs dependencies..."
-  "$VENV_DOCS/bin/pip" install -q -r "$PLAYBOOK_DIR/requirements-docs.txt"
+  "$VENV_DOCS/bin/pip" install -q -r "$PLAYBOOK_DIR/requirements.txt"
 fi
 
 echo "Starting MkDocs server..."

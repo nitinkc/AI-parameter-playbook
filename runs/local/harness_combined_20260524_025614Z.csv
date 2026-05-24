@@ -1,0 +1,6 @@
+name,temperature,top_k,top_p,min_p,typical_p,repetition_penalty,sequence_len,entropy,top_token,top_token_prob,viable_tokens
+Safety,0.3,0,1.0,,1.0,1.0,0,0.748757,approve,0.7456,8
+Balanced,0.7,0,0.95,,1.0,1.0,0,1.290666,approve,0.4727,5
+Creative,1.2,0,0.9,,1.0,1.0,0,1.606954,approve,0.3468,6
+Diverse+Safe,0.9,10,0.95,,1.0,1.0,0,1.497771,approve,0.3968,6
+Broad,0.8,40,1.0,,1.0,1.0,0,1.617358,approve,0.415,10

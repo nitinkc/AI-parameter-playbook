@@ -352,7 +352,7 @@ if __name__ == "__main__":
    - E ≈ 2.0+: High diversity
 
 Next steps:
-  - Read the Learning Path: docs/learning/overview.md
+  - Read the Learning Path: docs/learning/00-overview.md
   - Try Experiment 1: docs/learning/01-temperature.md
   - Explore: docs/playgrounds/simulator-guide.md
 """)

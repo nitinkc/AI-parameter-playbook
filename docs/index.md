@@ -13,13 +13,13 @@ Learn exactly what each LLM parameter does through **hands-on experiments on you
 5. **Repetition Penalties** (5 min) ← How do penalties work?
 6. **Real Use Cases** (15 min) ← How to tune for different tasks?
 
-**→ [Start the Learning Path](learning/overview.md)** (no prior knowledge needed)
+**→ [Start the Learning Path](learning/00-overview.md)** (no prior knowledge needed)
 
 Or **run the simulator right now** (5 minutes):
 
 ```bash
-pip install -r requirements-experiments.txt
-python3 experiments/local/sampling_simulator.py
+pip install -r requirements.txt
+python3 notebooks/sampling_simulator.py
 ```
 
 ## Why Parameters Matter
@@ -48,7 +48,7 @@ This playbook teaches you to **control this intentionally.**
 
 ### 🎯 Path 1: Quick Intuition (30 minutes)
 
-- [Learning Overview](learning/overview.md)
+- [Learning Overview](learning/00-overview.md)
 - [Experiment 1: Temperature](learning/01-temperature.md)
 - [Experiment 2: Top-p](learning/02-top-p.md)
 - [Experiment 6: Real Use Cases](learning/06-use-cases.md)
@@ -63,7 +63,7 @@ Complete all 6 experiments in sequence. Build intuition about:
 - How penalties discourage repetition
 - How to design parameters for different use cases
 
-**→ [Start here: Learning Path Overview](learning/overview.md)**
+**→ [Start here: Learning Path Overview](learning/00-overview.md)**
 
 ### ☁️ Path 3: Cloud Validation (optional)
 
@@ -90,10 +90,10 @@ All platforms support the same core parameters. Learn them once, apply everywher
 
 No credentials needed. These run entirely offline:
 
-- **[Sampling Simulator](playgrounds/simulator-guide.md)** – See how parameters reshape distributions
-- **[Experiment Harness](playgrounds/experiment-harness.md)** – Run local sweeps (coming soon)
+- **[Sampling Simulator](experiments/simulator-guide.md)** – See how parameters reshape distributions
+- **[Experiment Harness](experiments/experiment-harness.md)** – Run local sweeps and export CSV/JSON
 
-Install experiment dependencies with `pip install -r requirements-experiments.txt`.
+Install experiment dependencies with `pip install -r requirements.txt`.
 
 ## Reference (When You're Ready)
 
@@ -117,13 +117,13 @@ This playbook is based on official specs:
 **Your first step:**
 
 ```bash
-pip install -r requirements-experiments.txt
-python3 experiments/local/sampling_simulator.py  # 2 minutes
+pip install -r requirements.txt
+python3 notebooks/sampling_simulator.py  # 2 minutes
 ```
 
 Then:
 
-**→ [Read the Learning Path Overview (5 min)](learning/overview.md)**
+**→ [Read the Learning Path Overview (5 min)](learning/00-overview.md)**
 
 That's it. 7 minutes and you'll understand LLM parameters deeper than most people.
 

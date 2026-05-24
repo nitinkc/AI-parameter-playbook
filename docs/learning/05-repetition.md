@@ -2,255 +2,137 @@
 
 ## The Question
 
-**How do repetition penalties work? What do they actually penalize?**
+**How do repetition penalties work, and what do they actually change?**
 
-You've probably encountered it: an LLM gets stuck and repeats the same thing over and over ("the the the..." or "I'm sorry I'm sorry I'm sorry...").
+They are designed to reduce loops like "the the the" or repeated phrases, but they do not hard-ban repetition.
 
-Penalties try to fix this, but:
-- Do they prevent repetition entirely?
-- Do they just make it *less likely*?
-- What counts as "repetition" (exact phrase? single token)?
+## Core Idea
 
-## What You'll Do
+A repetition penalty modifies logits of recently seen tokens before sampling.
 
-Simulate a multi-token generation scenario where tokens are penalized for appearing recently in the sequence. Watch how penalties change token selection over time.
+- `penalty = 1.0`: no change
+- `penalty > 1.0`: discourage repeated tokens
 
-## The Setup
+Common multiplicative rule:
 
-Instead of sampling once, we'll sample **20 tokens in a row**, applying a repetition penalty to tokens that appeared in the last 8 tokens.
+```python
+if token in recent_tokens:
+    if logit > 0:
+        logit /= penalty
+    else:
+        logit *= penalty
+```
+
+This asymmetry avoids over-penalizing already-unlikely tokens.
+
+## Setup
+
+Use sequence generation (not single-step sampling):
 
 ```python
 logits = np.array([2.2, 1.8, 1.4, 0.9, 0.2, 0.1, -0.3, -0.6, -0.8, -1.0], dtype=float)
 tokens = ['approve', 'reject', 'review', 'escalate', 'delay', 'audit', 'optimize', 'notify', 'assign', 'close']
 
-# Simulate what happens when we generate a 20-token sequence
-sequence_len = 8  # Look back this many tokens
+# Example sequence settings
+sequence_length = 20
+lookback = 8
 ```
 
-## Your Experiment: Penalty Impact
+## Your Experiment: Penalty Strength Sweep
 
-Look in the simulator for the extended experiment function and run:
-
-### Scenario 1: No penalty
+Run with fixed decoding and varying repetition penalty:
 
 ```python
-dict(name='No penalty',
-     temperature=0.8, top_k=0, top_p=1.0, 
-     repetition_penalty=1.0,  # 1.0 = no effect
-     sequence_len=8)
+settings = [
+    dict(name='No penalty', temperature=0.8, top_k=0, top_p=1.0, repetition_penalty=1.0, sequence_len=8),
+    dict(name='Light penalty (1.1x)', temperature=0.8, top_k=0, top_p=1.0, repetition_penalty=1.1, sequence_len=8),
+    dict(name='Moderate penalty (1.3x)', temperature=0.8, top_k=0, top_p=1.0, repetition_penalty=1.3, sequence_len=8),
+    dict(name='Heavy penalty (1.5x)', temperature=0.8, top_k=0, top_p=1.0, repetition_penalty=1.5, sequence_len=8),
+    dict(name='Extreme penalty (2.0x)', temperature=0.8, top_k=0, top_p=1.0, repetition_penalty=2.0, sequence_len=8),
+]
 ```
 
-### Scenario 2: Light penalty
-
-```python
-dict(name='Light penalty (1.1x)',
-     temperature=0.8, top_k=0, top_p=1.0, 
-     repetition_penalty=1.1,
-     sequence_len=8)
-```
-
-### Scenario 3: Moderate penalty
-
-```python
-dict(name='Moderate penalty (1.3x)',
-     temperature=0.8, top_k=0, top_p=1.0, 
-     repetition_penalty=1.3,
-     sequence_len=8)
-```
-
-### Scenario 4: Heavy penalty
-
-```python
-dict(name='Heavy penalty (1.5x)',
-     temperature=0.8, top_k=0, top_p=1.0, 
-     repetition_penalty=1.5,
-     sequence_len=8)
-```
-
-### Scenario 5: Extreme penalty
-
-```python
-dict(name='Extreme penalty (2.0x)',
-     temperature=0.8, top_k=0, top_p=1.0, 
-     repetition_penalty=2.0,
-     sequence_len=8)
-```
-
-## How to Run
-
-Modify the simulator to use the sequence-aware experiment. If it's not already there, add this to `experiments/local/sampling_simulator.py`:
-
-```python
-def run_sequence_experiment(
-    token_names,
-    base_logits,
-    n_sequences=100,       # How many 20-token sequences to generate
-    sequence_length=20,    # Length of each sequence
-    seed=123,
-    temperature=1.0,
-    top_k=0,
-    top_p=1.0,
-    repetition_penalty=1.0,
-    lookback=8,           # How many recent tokens to penalize
-):
-    rng = np.random.default_rng(seed)
-    token_counts = np.zeros(len(base_logits), dtype=int)
-    repetition_counts = {}  # Track how often each token repeats
-
-    for _ in range(n_sequences):
-        generated = []
-        for step in range(sequence_length):
-            logits = base_logits.copy()
-            
-            # Apply repetition penalty to recently-generated tokens
-            if len(generated) > 0:
-                recent_window = generated[-lookback:]
-                for tid in set(recent_window):
-                    if logits[tid] > 0:
-                        logits[tid] /= repetition_penalty
-                    else:
-                        logits[tid] *= repetition_penalty
-            
-            # Apply other filters
-            logits = apply_temperature(logits, temperature)
-            logits = filter_top_k(logits, top_k)
-            logits = filter_top_p(logits, top_p)
-            
-            tid = sample_next(logits, rng)
-            generated.append(tid)
-            token_counts[tid] += 1
-    
-    # Count repetitions (same token chosen twice in a row)
-    total_repetitions = 0
-    for _ in range(n_sequences):
-        generated = []  # Would need to regenerate properly in real code
-        # For demo purposes, just return token distribution
-
-    probs_emp = token_counts / token_counts.sum()
-    
-    return {
-        'counts': token_counts,
-        'probs_emp': probs_emp,
-        'entropy': entropy(probs_emp),
-        'top_tokens': sorted(
-            [(token_names[i], probs_emp[i]) for i in range(len(token_names))],
-            key=lambda x: -x[1]
-        )[:10],
-    }
-```
-
-Run the suite of penalties:
+Run:
 
 ```bash
-python3 experiments/local/sampling_simulator.py
+python3 notebooks/sampling_simulator.py
 ```
 
 ## What to Watch For
 
-1. **Token diversity**:
-   - No penalty: Might generate "approve reject approve approve reject approve..." (repeated)
-   - Heavy penalty: More like "approve reject review escalate delay audit optimize..."
+1. **Token diversity** usually increases as penalty rises.
+2. **Entropy** often increases as repeated high-probability tokens are pushed down.
+3. **Looping behavior** should decrease, especially for short repeated streaks.
 
-2. **Entropy trend**:
-   - As you increase penalty, does entropy go up?
-   - Why? (Hint: it forces the model to spread tokens more evenly)
+Example trend:
 
-3. **Distribution smoothing**:
-   - No penalty: High-prob tokens still dominate
-   - Heavy penalty: Distribution flattens (entropy increases)
-
-Example hypothetical output:
-
-```
+```text
 === No penalty ===
 Entropy: 1.234
 approve       0.287
 reject        0.201
-review        0.156
-escalate      0.098
-delay         0.076
-audit         0.053
-optimize      0.045
-notify         0.032
-assign         0.041
-close          0.011
+...
 
 === Heavy penalty (1.5x) ===
 Entropy: 2.012
 approve       0.156
 reject        0.155
 review        0.143
-escalate      0.128
-delay         0.119
-audit         0.107
-optimize      0.094
-notify         0.051
-assign         0.028
-close          0.019
+...
 ```
 
-## The Insight: Penalties Don't Prevent, They Discourage
+## Important Caveats
 
-**Key realization:** Repetition penalties don't *forbid* repetition; they *reduce the logit* of already-seen tokens.
+- Penalties **discourage**, not forbid.
+- Too strong penalties can hurt coherence by suppressing necessary words.
+- Lookback window matters: tokens outside the window are no longer penalized.
 
-This means:
-1. ✅ Repetition is still *possible* (the penalty doesn't make it impossible)
-2. ✅ More likely to see variety (but might miss intentional repetition like "very very important")
-3. ✅ The window matters (tokens outside the lookback aren't penalized)
+## Practical Strength Guide
 
-### How it works mathematically
+| Penalty | Behavior |
+|---------|----------|
+| 1.0 | Off |
+| 1.1-1.2 | Mild discouragement |
+| 1.3-1.5 | Noticeable anti-loop effect |
+| > 1.8 | Can become unnatural/incoherent |
 
-For each token in the recent window:
-- If `logit > 0`: divide by `repetition_penalty` (makes it *less* likely)
-- If `logit < 0`: multiply by `repetition_penalty` (makes it *more* likely, i.e., "less negative")
+## Frequency vs Presence Penalty (API Mapping)
 
-This asymmetry is because:
-- High logits: want to temper high-probability tokens
-- Low logits: want to avoid double-penalizing low-probability tokens
+Many APIs expose additive penalties instead of multiplicative ones:
 
-## Real-World Implication
+| Type | Typical effect |
+|------|----------------|
+| **Presence penalty** | Penalize any token that has appeared at least once |
+| **Frequency penalty** | Penalize tokens more as they appear more times |
 
-| Use case | Penalty | Lookback | Reason |
-|----------|---------|----------|--------|
-| Summarization | 1.0 (none) | N/A | Summaries should focus on key points, even if repeated |
-| Code generation | 1.1 (mild) | 32 | Avoid infinite loops but allow intentional repetition like `for i in range(i in range...)` |
-| Chatbot | 1.2 (moderate) | 64 | Encourage variety but not too aggressive |
-| Story generation | 1.15 (light) | 128 | Balance variety with narrative consistency |
+The intuition is similar: increase novelty pressure, reduce repetitive loops.
 
-**Note:** Most models allow `frequency_penalty` and `presence_penalty` (OpenAI) or similar in their APIs. These are more sophisticated than the simple "repetition_penalty" here, but the intuition is similar.
-
-## Next Step
-
-You now understand:
-- How individual parameters work (temperature, top-p, top- k)
-- How they combine
-- How penalties discourage repetition
-
-Ready to apply this knowledge to real use cases?
-
-👉 **[Experiment 6: Real Use Cases →](06-use-cases.md)**
-
----
-
-## Optional: Dive Deeper
-
-Try tracking actual repetitions in a long sequence:
+## Optional: Measure Repeats Directly
 
 ```python
-def count_repeats(generated_tokens, lookback=8):
-    """Count how many times a token is selected twice in succession."""
+def count_adjacent_repeats(generated_ids):
     repeats = 0
-    for i in range(1, len(generated_tokens)):
-        if generated_tokens[i] == generated_tokens[i-1]:
+    for i in range(1, len(generated_ids)):
+        if generated_ids[i] == generated_ids[i - 1]:
             repeats += 1
     return repeats
-
-# Then compare:
-# - No penalty:  ~10 repeats in 1000 tokens
-# - Light penalty (1.1x): ~5 repeats
-# - Heavy penalty (1.5x): ~1-2 repeats
 ```
 
-This gives you an intuition for *how much* the penalty actually helps.
+Then compare repeat counts across penalty settings.
+
+## Task-Level Guidance
+
+| Use case | Penalty | Lookback | Why |
+|----------|---------|----------|-----|
+| Summarization | 1.0 | N/A | Repetition may be acceptable for key terms |
+| Code generation | 1.1 | 32 | Prevent loops while keeping syntax patterns |
+| Chatbot | 1.2 | 64 | Improve conversational variety |
+| Story generation | 1.15 | 128 | Encourage novelty without derailing style |
+
+## Takeaway
+
+> **Repetition penalties are anti-loop pressure, not a hard rule.** Start small and increase only when you observe looping.
+
+👉 Next: **[Experiment 6: Real Use Cases](06-use-cases.md)**
 
 --8<-- "_abbreviations.md"

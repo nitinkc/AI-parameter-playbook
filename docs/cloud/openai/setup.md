@@ -51,7 +51,7 @@ OPENAI_MODEL=gpt-4-turbo  # or gpt-4, gpt-3.5-turbo, o1 (preview)
 ```bash
 # Activate venv and install deps
 source .venv-exp/bin/activate
-pip install -r requirements-experiments.txt
+pip install -r requirements.txt
 
 # Run preset sweep
 python3 scripts/cloud/openai_sweep.py --preset summarization --trials 3

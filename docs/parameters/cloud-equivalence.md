@@ -8,13 +8,13 @@ This page maps parameters across all supported cloud platforms so you can use th
 
 Controls randomness/creativity of responses.
 
-| Platform | Parameter | Range | Default | Notes |
-|----------|-----------|-------|---------|-------|
-| Azure OpenAI | `temperature` | 0-2 | 1.0 | Can exceed 1.0 |
-| OpenAI | `temperature` | 0-2 | 1.0 | Can exceed 1.0 |
-| Vertex AI | `temperature` | 0-2 | 1.0 | Can exceed 1.0 |
-| Bedrock (Claude) | `temperature` | 0-1 | 1.0 | Capped at 1.0 |
-| Bedrock (Llama) | `temperature` | 0-1 | 0.5 | Capped at 1.0 |
+| Platform         | Parameter     |  Range  |  Default  |      Notes      |
+|:-----------------|:--------------|:-------:|:---------:|:---------------:|
+| Azure OpenAI     | `temperature` |   0-2   |    1.0    | Can exceed 1.0  |
+| OpenAI           | `temperature` |   0-2   |    1.0    | Can exceed 1.0  |
+| Vertex AI        | `temperature` |   0-2   |    1.0    | Can exceed 1.0  |
+| Bedrock (Claude) | `temperature` | **0-1** |    1.0    |  Capped at 1.0  |
+| Bedrock (Llama)  | `temperature` | **0-1** |    0.5    |  Capped at 1.0  |
 
 **Migration tip:** If tuning temperature for Azure/OpenAI/Vertex and want to use Bedrock, divide by 2 if > 1.0.
 
@@ -22,13 +22,13 @@ Controls randomness/creativity of responses.
 
 Filters candidate tokens via cumulative probability.
 
-| Platform | Parameter | Range | Default | Notes |
-|----------|-----------|-------|---------|-------|
-| Azure OpenAI | `top_p` | 0-1 | 1.0 | Pure nucleus |
-| OpenAI | `top_p` | 0-1 | 1.0 | Pure nucleus |
-| Vertex AI | `top_p` | 0-1 | 1.0 | Pure nucleus |
-| Bedrock (Anthropic) | `top_p` | 0-1 | 0.999 | Very close to 1 by default |
-| Bedrock (Meta/Mistral) | `top_p` | 0-1 | 0.9 | Slightly tighter |
+| Platform               | Parameter  | Range  | Default  | Notes                      |
+|:-----------------------|:-----------|:-------|:---------|:---------------------------|
+| Azure OpenAI           | `top_p`    | 0-1    | 1.0      | Pure nucleus               |
+| OpenAI                 | `top_p`    | 0-1    | 1.0      | Pure nucleus               |
+| Vertex AI              | `top_p`    | 0-1    | 1.0      | Pure nucleus               |
+| Bedrock (Anthropic)    | `top_p`    | 0-1    | 0.999    | Very close to 1 by default |
+| Bedrock (Meta/Mistral) | `top_p`    | 0-1    | 0.9      | Slightly tighter           |
 
 **Migration tip:** All platforms support 0-1 range identically.
 

@@ -126,13 +126,13 @@ python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 # Install dependencies
-pip install -r requirements-experiments.txt
+pip install -r requirements.txt
 ```
 
 ### Run the Default Experiments
 
 ```bash
-python3 experiments/local/sampling_simulator.py
+python3 notebooks/sampling_simulator.py
 ```
 
 You'll see output like:
@@ -152,7 +152,7 @@ delay         0.000
 
 ## The Simulator Code
 
-Below is the complete, ready-to-run simulator at `experiments/local/sampling_simulator.py`:
+Below is the complete, ready-to-run simulator at `experiments/sampling_simulator.py`:
 
 ### Core Math Functions
 

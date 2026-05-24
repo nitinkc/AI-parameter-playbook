@@ -1,0 +1,7 @@
+name,temperature,top_k,top_p,min_p,typical_p,repetition_penalty,sequence_len,entropy,top_token,top_token_prob,viable_tokens
+T=0.1,0.1,0,1.0,,1.0,1.0,0,0.094869,approve,0.9813,3
+T=0.2,0.2,0,1.0,,1.0,1.0,0,0.455946,approve,0.8643,4
+T=0.5,0.5,0,1.0,,1.0,1.0,0,1.183414,approve,0.5641,10
+T=1,1.0,0,1.0,,1.0,1.0,0,1.807128,approve,0.3461,10
+T=1.5,1.5,0,1.0,,1.0,1.0,0,2.046808,approve,0.264,10
+T=2,2.0,0,1.0,,1.0,1.0,0,2.166652,approve,0.202,10

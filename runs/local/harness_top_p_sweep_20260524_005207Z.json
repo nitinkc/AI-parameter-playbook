@@ -1,0 +1,81 @@
+{
+  "metadata": {
+    "created_at_utc": "20260524_005207Z",
+    "preset": "top_p_sweep",
+    "samples": 10000,
+    "seed": 42,
+    "scenario_file": null
+  },
+  "results": [
+    {
+      "name": "top_p=0.2",
+      "temperature": 1.0,
+      "top_k": 0,
+      "top_p": 0.2,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 0.0,
+      "top_token": "approve",
+      "top_token_prob": 1.0,
+      "viable_tokens": 1
+    },
+    {
+      "name": "top_p=0.5",
+      "temperature": 1.0,
+      "top_k": 0,
+      "top_p": 0.5,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 0.0,
+      "top_token": "approve",
+      "top_token_prob": 1.0,
+      "viable_tokens": 1
+    },
+    {
+      "name": "top_p=0.8",
+      "temperature": 1.0,
+      "top_k": 0,
+      "top_p": 0.8,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 1.047607,
+      "top_token": "approve",
+      "top_token_prob": 0.4708,
+      "viable_tokens": 3
+    },
+    {
+      "name": "top_p=0.95",
+      "temperature": 1.0,
+      "top_k": 0,
+      "top_p": 0.95,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 1.630263,
+      "top_token": "approve",
+      "top_token_prob": 0.3639,
+      "viable_tokens": 7
+    },
+    {
+      "name": "top_p=1",
+      "temperature": 1.0,
+      "top_k": 0,
+      "top_p": 1.0,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 1.80208,
+      "top_token": "approve",
+      "top_token_prob": 0.3534,
+      "viable_tokens": 10
+    }
+  ]
+}

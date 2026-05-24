@@ -1,0 +1,81 @@
+{
+  "metadata": {
+    "created_at_utc": "20260524_025614Z",
+    "preset": "combined",
+    "samples": 10000,
+    "seed": 42,
+    "scenario_file": null
+  },
+  "results": [
+    {
+      "name": "Safety",
+      "temperature": 0.3,
+      "top_k": 0,
+      "top_p": 1.0,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 0.748757,
+      "top_token": "approve",
+      "top_token_prob": 0.7456,
+      "viable_tokens": 8
+    },
+    {
+      "name": "Balanced",
+      "temperature": 0.7,
+      "top_k": 0,
+      "top_p": 0.95,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 1.290666,
+      "top_token": "approve",
+      "top_token_prob": 0.4727,
+      "viable_tokens": 5
+    },
+    {
+      "name": "Creative",
+      "temperature": 1.2,
+      "top_k": 0,
+      "top_p": 0.9,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 1.606954,
+      "top_token": "approve",
+      "top_token_prob": 0.3468,
+      "viable_tokens": 6
+    },
+    {
+      "name": "Diverse+Safe",
+      "temperature": 0.9,
+      "top_k": 10,
+      "top_p": 0.95,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 1.497771,
+      "top_token": "approve",
+      "top_token_prob": 0.3968,
+      "viable_tokens": 6
+    },
+    {
+      "name": "Broad",
+      "temperature": 0.8,
+      "top_k": 40,
+      "top_p": 1.0,
+      "min_p": null,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "sequence_len": 0,
+      "entropy": 1.617358,
+      "top_token": "approve",
+      "top_token_prob": 0.415,
+      "viable_tokens": 10
+    }
+  ]
+}

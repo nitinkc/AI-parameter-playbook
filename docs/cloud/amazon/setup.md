@@ -77,7 +77,7 @@ aws bedrock list-foundation-models --region us-east-1
 ```bash
 # Activate venv and install deps
 source .venv-exp/bin/activate
-pip install -r requirements-experiments.txt
+pip install -r requirements.txt
 
 # Run preset sweep
 python3 scripts/cloud/bedrock_sweep.py --preset summarization --trials 3
