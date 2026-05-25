@@ -1,8 +1,12 @@
-# Experiment 4: Combined Filters — A Step-by-Step Learning Guide
+# Experiment 4: Combined Filters
 
-> **What this file is**: A beginner-friendly, ground-up explanation of Experiment 4 (Combined Filters).  
-> **Who it's for**: Anyone who completed Experiments 1–3 and wants to understand how temperature, top-k, and top-p work *together* in real production systems.  
-> **What you'll get**: The ability to design a sampling configuration from scratch for any task, understand why order matters, and read any combined-filter graph with confidence.
+!!! info
+    
+    **What this file is**: A beginner-friendly, ground-up explanation of Experiment 4 (Combined Filters).
+
+    **Who it's for**: Anyone who completed Experiments 1–3 and wants to understand how temperature, top-k, and top-p work *together* in real production systems.  
+
+    **What you'll get**: The ability to design a sampling configuration from scratch for any task, understand why order matters, and read any combined-filter graph with confidence.
 
 ---
 
@@ -17,6 +21,9 @@ You've learned three tools so far:
 A natural assumption is that combining them just adds their effects together. That's mostly true — but the interactions have surprises. Sometimes two parameters cancel each other out. Sometimes one parameter makes another irrelevant. Sometimes a small change to one parameter causes a large effect because of how it interacts with another.
 
 This experiment is about developing the intuition to predict these interactions before running the model — which is what separates engineers who are good at prompt engineering from those who are guessing.
+
+!!! info "Goal of Experiment 4"
+    Learn to predict interactions, not just memorize presets.
 
 ---
 
@@ -45,6 +52,9 @@ All tokens (e.g., 32,000 in a real LLM)
 ```
 
 Each gate operates on the output of the previous gate. This is why order matters. Temperature must come first because it changes the logits that determine rankings. Top-k uses those rankings. Top-p uses the post-top-k probabilities to find its nucleus.
+
+!!! warning "Pipeline integrity"
+    Wrong operation order means you are filtering the wrong distribution.
 
 If you ran top-p before temperature, you'd be filtering based on the wrong distribution. If you ran temperature after top-k, the ranking that top-k used would be invalid.
 
@@ -154,6 +164,9 @@ review:   0.170 / 0.967 = 0.176  (17.6%)
 
 Three stages of filtering progressively concentrated the probability. Started with 10 candidates, ended with 3.
 
+!!! success "Key pattern"
+    Combined filters are cumulative constraints on candidate eligibility.
+
 ---
 
 ## Step 2: Trace All Five Experiment Scenarios
@@ -233,6 +246,9 @@ Nucleus ≈ 8–9 tokens. Temperature flattened the distribution so much that p=
 
 **The interaction**: High temperature causes top-p to be MORE permissive (larger nucleus). This is because a flatter distribution needs more tokens to reach the cumulative threshold. Creative mode ends up with a large nucleus — which is usually the intent.
 
+!!! note "Counterintuitive but expected"
+    Higher temperature can make top-p include more tokens at the same `p`.
+
 Entropy ≈ 1.9, nucleus ≈ 8 tokens.
 
 ---
@@ -271,6 +287,9 @@ Entropy in the 10-token case ≈ 1.4–1.7 (T=0.8 effect without top-p trimming)
 
 When parameters combine, four interaction patterns emerge. Knowing these prevents you from being surprised by your model's behavior.
 
+!!! abstract "Interaction taxonomy"
+    Redundant, competing, multiplied, and safety-net effects explain most surprising outputs.
+
 ---
 
 ### Interaction 1: "Redundant Filtering" — When One Parameter Makes Another Irrelevant
@@ -298,6 +317,9 @@ At T=1.5, the distribution is quite flat. Maybe 8 tokens all have roughly equal 
 **The outcome is unpredictable**: The final 2 tokens are the top-ranked ones, but their probabilities are now much closer to each other (because T=1.5 compressed the gap between them). So you're sampling from 2 roughly equal options. This feels both random and constrained.
 
 **When this is useful**: When you want variety between runs (different of the two tokens gets sampled) but hard limits on which tokens can appear. Security-conscious generation sometimes uses this pattern.
+
+!!! tip "Design pattern"
+    Use competing controls intentionally when you want bounded variability.
 
 ---
 
@@ -353,11 +375,17 @@ Then top-k and top-p would filter based on the *unscaled* logit distribution —
 
 > **Rule of thumb**: If you ever implement your own sampling, always apply temperature first, then top-k, then top-p. This matches the standard and produces predictable behavior.
 
+!!! danger "Implementation risk"
+    Reordered sampling steps are a common source of non-reproducible decoding behavior.
+
 ---
 
 ## Step 5: Read the Graphs — Panel by Panel
 
 The graph `exp4_combined.png` has panels across 3 rows. Here is how to read each one.
+
+!!! info "Graph reading strategy"
+    Read row 2 (pipeline evolution) before row 3 (interaction summaries).
 
 ---
 
@@ -366,6 +394,7 @@ The graph `exp4_combined.png` has panels across 3 rows. Here is how to read each
 Four bar charts, one per preset scenario.
 
 **What you're looking at:**
+
 - X-axis: the 20 tokens (token index)
 - Y-axis: final probability after all filters applied
 - Bar color: a different color per preset
@@ -374,10 +403,12 @@ Four bar charts, one per preset scenario.
 **How to read them:**
 
 Start with the title numbers:
+
 - `H=X.XX` is entropy. Lower = more peaked, higher = more spread.
 - `P(top)=XX%` is the top-token probability. Higher = model is more confident.
 
 Then look at the bar shape:
+
 - One very tall bar + everything else near zero = peaked, deterministic behavior
 - Several bars with similar heights = flat, diverse behavior
 - A few medium-height bars dropping off quickly = balanced
@@ -402,6 +433,7 @@ Each panel's title shows "N eligible" — the number of tokens with non-zero pro
 **How to read them:**
 
 Follow the evolution:
+
 - Panel 0: Logits range widely (positive and negative). No probabilities yet.
 - Panel 1: All bars are now positive. The distribution is shaped by T=0.7. Notice the shape.
 - Panel 2: Some bars dropped to zero (top-k cutoff). The remaining bars shifted upward slightly (renormalization).
@@ -418,6 +450,7 @@ Follow the evolution:
 This is the most information-dense panel. It shows entropy across a grid of temperature values and top-k values simultaneously.
 
 **What you're looking at:**
+
 - X-axis: temperature (from 0.1 to 2.0, 30 steps)
 - Y-axis: top-k value (k=1, 2, 5, 10, 20, 50 from bottom to top)
 - Color: entropy (darker/purple = low entropy, brighter/yellow = high entropy)
@@ -445,6 +478,7 @@ Move bottom to top (increasing k): entropy generally increases. The colors get b
 A simple horizontal bar chart comparing entropy across the five presets.
 
 **What you're looking at:**
+
 - Y-axis: preset names
 - X-axis: entropy value
 - Bar color: the preset's color
@@ -479,6 +513,9 @@ But the interactions mean these rules can be violated when parameters compensate
 
 **The "entropy budget" mental model**: Think of entropy as a budget. Temperature adds to it. Top-k subtracts from it (hard ceiling). Top-p subtracts from it (soft ceiling). The final entropy is roughly: temperature contribution − top-k subtraction − top-p subtraction.
 
+!!! note "Heuristic"
+    Use entropy budget as a directional guide, then validate with measured outputs.
+
 When top-k or top-p is very restrictive, it can "spend" more than temperature added, capping entropy below what temperature alone would produce.
 
 ---
@@ -504,13 +541,13 @@ close         0.000
 
 **Reading guide:**
 
-| What you see | What it means |
-|---|---|
-| `Entropy: 0.614` | Very low — one token dominates heavily |
-| `approve 0.896` | 89.6% probability. T=0.3 caused this extreme peak. |
-| `reject 0.087` | 8.7% — rare but possible |
-| `review 0.013` | 1.3% — very rare |
-| Others ≈ 0.000 | Functionally zero without hard top-k/top-p exclusion |
+| What you see     | What it means                                        |
+|:-----------------|:-----------------------------------------------------|
+| `Entropy: 0.614` | Very low — one token dominates heavily               |
+| `approve 0.896`  | 89.6% probability. T=0.3 caused this extreme peak.   |
+| `reject 0.087`   | 8.7% — rare but possible                             |
+| `review 0.013`   | 1.3% — very rare                                     |
+| Others ≈ 0.000   | Functionally zero without hard top-k/top-p exclusion |
 
 Notice: no hard zeros in the "Safety" scenario (k=0, p=1.0). The near-zeros are purely from temperature compression, not hard exclusion.
 
@@ -533,13 +570,13 @@ close         0.000
 
 **Reading guide:**
 
-| What you see | What it means |
-|---|---|
-| `Entropy: 1.892` | Much higher — 7 tokens have real probability |
-| `approve 0.201` | Only 20.1% — temperature compressed the gap between tokens |
-| `reject 0.189` | Close behind approve — the model is genuinely unsure |
-| `notify 0.000` | Hard zero — top-p cut the nucleus here |
-| `assign 0.000` | Hard zero — also excluded by top-p |
+| What you see     | What it means                                              |
+|:-----------------|:-----------------------------------------------------------|
+| `Entropy: 1.892` | Much higher — 7 tokens have real probability               |
+| `approve 0.201`  | Only 20.1% — temperature compressed the gap between tokens |
+| `reject 0.189`   | Close behind approve — the model is genuinely unsure       |
+| `notify 0.000`   | Hard zero — top-p cut the nucleus here                     |
+| `assign 0.000`   | Hard zero — also excluded by top-p                         |
 
 Notice the hard zeros now appear — because p=0.9 created a nucleus boundary. Also notice that approve's probability dropped from 89.6% (Safety) to 20.1% (Creative). The same model, same logits, dramatically different behavior from parameter choices alone.
 
@@ -570,6 +607,9 @@ The higher the top-p threshold, the lower the temperature where that top-p becom
 ---
 
 ## Step 9: Common Misconceptions — Cleared Up
+
+!!! warning "Misconceptions matter"
+    Most decoding regressions come from interaction assumptions that are almost true, but not quite.
 
 **Misconception 1: "More parameters = better control"**
 
@@ -624,6 +664,9 @@ Step 4: Measure
 
 ### Quick Preset Reference
 
+!!! example "Tuning workflow"
+    Start from the nearest preset by task, then change one parameter at a time.
+
 | Use Case | T | p | k | Expected Entropy |
 |----------|---|---|---|-----------------|
 | Classification | 0.1–0.2 | 0.9 | 20 | < 0.5 bits |
@@ -677,6 +720,9 @@ When you open `exp4_combined.png`, scan in this order:
 | Temperature dominates | Across all interaction effects, temperature has the largest single impact  |
 
 > **Final takeaway**: No single parameter setting is right for all tasks. In production, you build intuition by starting with the appropriate preset for your task type, then adjusting one parameter at a time while measuring entropy and output quality. The four interaction patterns — redundant, competing, multiplied, safety net — give you a vocabulary to diagnose what's happening when outputs surprise you.
+
+!!! success "Bottom line"
+    In combined decoding, diagnosis quality matters as much as parameter values.
 
 ---
 

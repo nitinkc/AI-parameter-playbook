@@ -26,6 +26,9 @@ Before touching any math, understand the key word in the experiment description:
 
 This is the most important distinction. Top-k and top-p can create hard zeros — tokens that literally cannot be sampled. Repetition penalty never creates a hard zero (unless the penalty is infinite, which no system uses). It only *moves* the probability of seen tokens downward — and the other unseen tokens absorb the redistributed probability.
 
+!!! info "Core distinction"
+    Repetition penalty is probability pressure, not eligibility filtering.
+
 Think of it like a tax:
 - No tax (penalty=1.0): every token pays the same rate, seen tokens have no disadvantage
 - Light tax (penalty=1.1): seen tokens pay a 10% surcharge, slight disadvantage
@@ -93,6 +96,9 @@ Correct operation: -0.6 * 1.3 = -0.78  ← more negative, lower probability
 
 The asymmetry ensures that the penalty *always discourages* seen tokens, regardless of the sign of their logit.
 
+!!! warning "Implementation detail"
+    The positive/negative branch is essential; removing it can invert behavior for negative logits.
+
 ---
 
 ## Step 2: Trace the Penalty for One Token at Three Penalty Strengths
@@ -151,11 +157,17 @@ reject, review, and others all increase significantly
 
 At penalty=2.0, approve is still the most likely token, but it's no longer dominant. The model now genuinely considers reject, review, escalate as real alternatives.
 
+!!! note "Interpretation"
+    Heavy penalty flattens local preferences without forbidding recurrence.
+
 ---
 
 ## Step 3: Understand the Lookback Window
 
 The lookback window is the set of recent tokens that are subject to the penalty. This is a parameter that often gets ignored, but it's as important as the penalty strength.
+
+!!! tip "Practical knob"
+    Tune lookback and penalty together; strength without window context is incomplete.
 
 ### Visualizing the Window
 
@@ -262,6 +274,9 @@ Entropy: Very high, often higher than the "unconstrained" entropy you'd see from
 
 When to use: Rarely in production. Useful for stress testing, or when you've verified that your specific task has zero tolerance for any repetition (e.g., generating a list of strictly unique items, where each item must be different from all previous ones).
 
+!!! danger "High-penalty risk"
+    Strong penalties can suppress necessary function words and damage fluency.
+
 ---
 
 ## Step 5: Frequency vs Presence Penalty — The Two API Flavors
@@ -303,6 +318,9 @@ Formula (additive version):
 
 ### Side-by-Side Comparison
 
+!!! abstract "Presence vs frequency"
+    Presence answers "seen or unseen"; frequency answers "how often seen".
+
 Imagine the lookback window contains: [approve, reject, approve, approve, review, approve]
 
 "Approve" has appeared 4 times. "Reject" has appeared 1 time. "Review" has appeared 1 time.
@@ -341,6 +359,9 @@ Approve gets 4x more penalty than reject. The more it looped, the harder it gets
 ## Step 6: Read the Graphs — Panel by Panel
 
 The graph `exp5_repetition.png` has 9 panels across 3 rows. Here is how to read each one.
+
+!!! info "Graph reading strategy"
+    Start with row 2 trends (penalty-response curves), then validate with row 1 before/after bars.
 
 ---
 
@@ -445,6 +466,9 @@ At penalty=1.5: the token seen 5x has a dramatically lower bar than the token se
 
 The key visual difference between the two panels: in the Presence panel, bars within each group are nearly the same height (equal treatment). In the Frequency panel, bars within each group form a clear staircase pattern (escalating treatment). That staircase pattern is the "frequency" in frequency penalty.
 
+!!! success "Fast visual check"
+    Staircase pattern means frequency penalty is behaving correctly.
+
 ---
 
 ### Row 3, Right: "Repetition Penalty Guide" table
@@ -525,6 +549,9 @@ At penalty=2.5: Even common function words like "a", "is", "the", "to" get heavi
 
 > **The lesson**: Repetition penalty doesn't know which repetitions are intentional and which are looping failures. It applies the same pressure to "approve approve approve" (bad loop) and "the the the" (also bad) as it does to "The president of the company said the policy..." (perfectly natural reuse of "the"). High penalties create unnatural avoidance of necessary repetitions.
 
+!!! warning "Semantic blindness"
+    Penalties act on token occurrence patterns, not linguistic intent.
+
 ---
 
 ## Step 9: The Lookback Window in Practice
@@ -579,9 +606,15 @@ This counts how often consecutive tokens are identical — the "the the the" typ
 
 Going from 1.0 to 1.1 might cut adjacent repeats in half. Going from 1.1 to 1.3 might cut them in half again. Going from 1.5 to 1.8 might reduce them by only 5%. The 1.5→1.8 range is diminishing returns — you're not getting fewer loops but you are getting more incoherence. The elbow at ~1.5 is where you stop.
 
+!!! tip "Calibration rule"
+    Stop increasing penalty once repeat reduction flattens but fluency cost rises.
+
 ---
 
 ## Step 11: Common Misconceptions — Cleared Up
+
+!!! note "Common failure source"
+    Loop fixes often overcorrect because teams tune penalty before diagnosing repetition type.
 
 **Misconception 1: "Repetition penalty stops the model from repeating tokens"**
 
@@ -698,6 +731,9 @@ When you open `exp5_repetition.png`, scan in this order:
 | Discourages not forbids | Even heavily penalized tokens can still be sampled; it's pressure, not prohibition |
 
 > **Final takeaway**: Repetition penalty is a diagnostic tool, not a default setting. Run without it first. If you observe loops, add it conservatively starting at 1.1 and measure both loop frequency and output coherence. The goal is the minimum penalty that breaks the loop — not the maximum penalty your system will accept.
+
+!!! success "Bottom line"
+    Use the smallest effective penalty and verify both repeat rate and readability.
 
 ---
 

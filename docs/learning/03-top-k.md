@@ -19,6 +19,9 @@ That's it. No cumulative sum. No dynamic adjustment. Just: **_rank all tokens, k
 
 The **simplicity** is both its strength and its weakness. Understanding *exactly* why will make you much better at choosing between top-k and top-p in practice.
 
+!!! info "Top-k in one sentence"
+    Top-k keeps a fixed number of ranked tokens regardless of probability shape.
+
 ---
 
 ## The Core Intuition: A Fixed-Width Window
@@ -43,6 +46,9 @@ Rank  Token       Probability
 The line is always at position k. It doesn't move based on probabilities. Token #6 is always cut, regardless of whether it has probability 0.04 (as above) or 0.39 (in a more uncertain distribution).
 
 This is the key difference from top-p, and it's what makes top-k both simpler and less adaptive.
+
+!!! note "Mental model"
+    Think of top-k as a fixed-width window sliding over rank, not a probability budget.
 
 ---
 
@@ -70,6 +76,9 @@ Top-k: Walk exactly k steps down the sorted list → stop
 
 - Top-p has a variable stopping condition (cumulative probability threshold).  
 - Top-k has a fixed stopping condition (position in rank).
+
+!!! warning "Consequence"
+    Fixed stopping can be too wide on peaked distributions and too narrow on flat ones.
 
 ---
 
@@ -186,6 +195,9 @@ k=0   → all tokens survive  →  no change from baseline
 
 The pattern is clear: each increment of k adds exactly one more token to the nucleus. The nucleus size is always precisely k (or all tokens, if k ≥ vocabulary size).
 
+!!! success "Reliable property"
+    Top-k gives deterministic control over candidate count.
+
 ---
 
 ## Step 3: The Core Difference From Top-p — A Direct Comparison
@@ -259,9 +271,15 @@ Top-k is neither too tight nor too loose — it's **wrong** in different directi
 
 >=Top-p adapts; top-k doesn't.
 
+!!! danger "Key limitation"
+    A single `k` cannot be optimal across both confident and uncertain contexts.
+
 ---
 
 ## Step 4: Where Top-k Wins
+
+!!! tip "When top-k shines"
+    Use top-k when you need a hard safety ceiling or easy interpretability for debugging.
 
 If top-k is less adaptive, why does it exist at all? Because it has genuine advantages:
 
@@ -286,6 +304,9 @@ For tasks where you know the model will always produce a moderately peaked distr
 ## Step 5: Read the Graphs — Panel by Panel
 
 The graph `exp3_top_k.png` has 8 panels across 3 rows. Here is how to read each one.
+
+!!! info "Graph reading strategy"
+    Compare row-3 failure modes first, then use row-2 curves to explain why they appear.
 
 ---
 
@@ -437,6 +458,9 @@ The table crystallizes the whole experiment into a reference you can come back t
 
 The sample output shows entropy rising as k increases:
 
+!!! abstract "Entropy rule"
+    More eligible tokens usually means more uncertainty, but with diminishing returns in the tail.
+
 ```
 k=1:   Entropy 0.0    (one token, no randomness)
 k=3:   Entropy ~1.1   (three tokens, some randomness)
@@ -520,6 +544,9 @@ The experiment output of 0.358 suggests the underlying example uses slightly dif
 
 **The key reading habit**: For any top-k output, look at the hard boundary. Every token at exactly rank k+1 should show 0.000. If they don't, top-k isn't being applied correctly.
 
+!!! tip "Quick sanity check"
+    Verify the first excluded rank is exactly `k+1`.
+
 ---
 
 ## Step 8: The k=1 Special Case — Why Greedy Decoding Is Both Useful and Dangerous
@@ -543,6 +570,9 @@ The experiment output of 0.358 suggests the underlying example uses slightly dif
 **The practical lesson:**
 
 Even when you want mostly-deterministic output, k=1 (or temperature ≈ 0) is often a step too far. k=3 with a low temperature gives you the benefit of mostly-consistent output while preserving just enough randomness to avoid loops and stiffness.
+
+!!! warning "Greedy caveat"
+    `k=1` maximizes determinism, not necessarily robustness over long generations.
 
 ---
 
@@ -594,6 +624,9 @@ Close but subtly wrong. Top-k first sets excluded tokens to zero, then renormali
 **Misconception 5: "top-k and temperature both shrink the number of viable tokens"**
 
 Temperature never removes tokens from consideration — even at T=0.1, every token retains some nonzero probability. Only top-k (and top-p) actually create hard zeros. Temperature changes the shape; top-k and top-p create hard exclusions.
+
+!!! note "Mechanism split"
+    Temperature reshapes; top-k excludes.
 
 ---
 
@@ -651,6 +684,9 @@ Are you combining with top-p anyway?
 ```
 
 ### Real-World Settings
+
+!!! example "Practical workflow"
+    Pick a conservative `k`, inspect quality and entropy, then widen only if needed.
 
 | Task | Recommended k | Notes |
 |------|--------------|-------|
@@ -713,6 +749,9 @@ When you open `exp3_top_k.png`, scan in this order:
 | Best practice | Use both: top-k as ceiling, top-p for adaptive focus |
 
 > **Final takeaway**: Top-k is the blunter tool. It doesn't know whether the 5th-ranked token has probability 0.001 or 0.2 — it treats them identically. Top-p knows. For most tasks, top-p is the better choice on its own. But top-k earns its place as a safety ceiling alongside top-p in production systems, and it's the clearer mental model when you're first learning to tune LLM parameters.
+
+!!! success "Bottom line"
+    Top-k is best used as a controllable ceiling, often paired with top-p.
 
 ---
 

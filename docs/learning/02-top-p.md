@@ -21,6 +21,9 @@ Top-p(Nucleus Sampling) solves this by asking a different question:
 
 This is a fundamentally different kind of intervention.
 
+!!! info "Top-p in one line"
+    Top-p is a **candidate-set filter**, not a global reshaping control.
+
 ---
 
 ## The Core Intuition: The Probability Budget
@@ -51,6 +54,9 @@ Top-p says: **"I only want to spend my probability budget on the most important 
 
 > The set of tokens you **keep** is called the **nucleus**.
 
+!!! tip "Memory hook"
+    `p` is your probability budget; the nucleus is the smallest set that spends that budget.
+
 ---
 
 ## Step 1: Understand the Algorithm — Exactly How Top-p Works
@@ -76,6 +82,9 @@ Here is the top-p algorithm, step by step:
 
 The key word is **"smallest set"**. 
 Top-p finds the **minimum number** of tokens needed to cover probability `p`. No more, no less.
+
+!!! note "Operational consequence"
+    Two prompts with the same `p` can produce very different nucleus sizes.
 
 ---
 
@@ -204,6 +213,9 @@ p = 1.00  → 10 tokens in nucleus  (everything)
 
 > **The pattern**: as p increases, more tokens enter the nucleus. The nucleus grows to match the probability you're willing to "spend."
 
+!!! success "What to internalize"
+    `p` controls *coverage*, not a fixed number of candidates.
+
 ---
 
 ## Step 4: The Dynamic Property — Why This Matters More Than You Think
@@ -262,6 +274,9 @@ Nucleus = {B1 through B9} — 9 tokens. The model is so unsure that even 9 token
 
 This is why it's called "dynamic" nucleus sampling. The nucleus size *adapts* to the shape of the distribution automatically. No tuning needed.
 
+!!! warning "Common mistake"
+    Assuming `p=0.9` means the same number of tokens every time leads to incorrect tuning decisions.
+
 ---
 
 ## Step 5: Temperature vs Top-p — The Exact Difference
@@ -310,11 +325,17 @@ The tail is gone. Zeroed out. Those tokens can never be sampled, no matter what.
 
 > **In practice**: Most systems use both. Temperature first (to reshape), then top-p (to trim the tail).
 
+!!! abstract "Division of labor"
+    Temperature decides distribution shape; top-p decides who remains eligible.
+
 ---
 
 ## Step 6: Read the Graphs — Panel by Panel
 
 The graph `exp2_top_p.png` has 8 panels across 3 rows. Here is how to read each one.
+
+!!! info "Graph reading strategy"
+    Start with dynamic nucleus size (row 2 left), then verify with cumulative curves (row 2 right).
 
 ![exp2_top_p.png](../notebooks/exp2_top_p.png)
 
@@ -414,6 +435,9 @@ For the flat distribution at p=0.9: the horizontal line crosses the blue curve a
 
 > **Pro tip**: The shape of these curves tells you everything about how top-p will behave on a given distribution. A curve that jumps steeply = small nucleus. A curve that rises slowly = large nucleus.
 
+!!! tip "Fast diagnostic"
+    Steep cumulative curve means confident model output; shallow curve means uncertainty.
+
 ---
 
 ### Row 3, Panels 1–2: "Peaked @ p=0.9" and "Flat @ p=0.9"
@@ -481,6 +505,9 @@ The ratio between approve and reject stayed the same (3:2 → still 3:2). But bo
 When you apply p=0.5, you're not just "removing" the bottom 50% of tokens. You're implicitly saying: "Pretend the model only knows these top tokens. Renormalize as if they're the whole universe."
 
 This is why very low p values make output feel more confident than even a low temperature would — not only are bottom tokens removed, but the top tokens each get a boosted probability.
+
+!!! warning "Renormalization trap"
+    Post-filter probabilities are sampling weights after exclusion, not raw model confidence.
 
 ---
 
@@ -590,6 +617,9 @@ Raw Logits → Temperature (reshape) → Top-p (trim) → Sample
 
 Temperature decides how many tokens deserve inclusion; top-p enforces the actual cutoff. If you run top-p before temperature, you'd get completely different (and usually wrong) behavior.
 
+!!! danger "Ordering matters"
+    Applying top-p on the wrong distribution stage can invalidate your intended control behavior.
+
 ---
 
 ## Step 10: Common Misconceptions — Cleared Up
@@ -614,6 +644,9 @@ No. The probability after renormalization is an artifact of which other tokens s
 
 Top-p can cause problems with very uniform distributions — it may include almost all tokens even at p=0.9. Some practitioners use top-k as a "safety ceiling" alongside top-p (see Experiment 4). For most tasks, top-p alone with p=0.9 is an excellent default.
 
+!!! note "Healthy default"
+    Start with `p=0.9`, then move down for precision tasks or up for exploratory tasks.
+
 ---
 
 ## Step 11: Practical Decision Guide
@@ -629,6 +662,9 @@ Does your task have one correct answer?
 ```
 
 ### Real-World Settings
+
+!!! example "Calibration tip"
+    Keep task metric fixed and sweep only `p` first before touching other parameters.
 
 | Task             | Recommended p  | Why                                            |
 |:-----------------|:--------------:|:-----------------------------------------------|
@@ -697,5 +733,8 @@ When you open `exp2_top_p.png`, scan in this order:
 | Temperature first | Temperature reshapes logits; top-p then trims the result |
 
 > **Final takeaway**: Top-p is a "quality filter" that removes the model's worst ideas before sampling. The magic is that it automatically tightens when the model is confident and loosens when the model is unsure — adapting to context without you having to change anything.
+
+!!! success "Bottom line"
+    Top-p is adaptive by construction; use that adaptivity intentionally.
 
 --8<-- "_abbreviations.md"

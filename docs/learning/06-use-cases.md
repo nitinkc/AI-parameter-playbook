@@ -24,9 +24,15 @@ from task requirements to parameter values — the direction you'll always need 
 The key insight is this: **before you touch any parameter, you need to define what a good output
 looks like for your task.** Parameters are a means to an end. The end is always a task outcome.
 
+!!! info "Task-first rule"
+    Parameters are controls; task success criteria are the objective.
+
 ---
 
 ## The Four Task Distributions — What They Represent
+
+!!! note "How to use this section"
+    Treat each synthetic distribution as a proxy for a real task uncertainty profile.
 
 The experiment uses four synthetic logit distributions, each designed to mimic the characteristics
 of a real model producing output for a specific task. Understanding why each distribution is shaped
@@ -67,6 +73,9 @@ Classification already produces the right behavior at baseline. The job of your 
 not to add diversity — it's to preserve the natural confidence while preventing any accidental
 divergence. Low temperature reinforces the already-peaked distribution; no top-k or top-p is needed
 because the distribution is already clean.
+
+!!! success "Classification takeaway"
+    When logits are already peaked, conservative settings should preserve confidence, not manufacture diversity.
 
 ---
 
@@ -110,6 +119,9 @@ preventing the tail (TANGENT, NOISE) from occasionally appearing. Moderate tempe
 natural competition between relevant concepts; top-p around 0.9–0.95 prunes the genuinely
 low-quality tokens.
 
+!!! tip "Summarization default"
+    Moderate temperature + mild top-p trimming is usually the safest starting pattern.
+
 ---
 
 ### Distribution 3: Code Generation (Many Plausible Continuations)
@@ -152,6 +164,9 @@ guard rails (the model shouldn't output truly invalid constructs). Top-k=20–40
 temperature is common: it preserves the "many valid options" nature of the distribution while
 ensuring you stay within plausible constructs.
 
+!!! note "Code-generation balance"
+    Encourage structural variety while enforcing a hard ceiling against long-tail noise.
+
 ---
 
 ### Distribution 4: Creative Writing (Broad Exploration Desired)
@@ -193,6 +208,9 @@ the best ones.
 High temperature to flatten the distribution further (make BRAVE vs MYSTICAL more competitive),
 combined with a permissive top-p (0.85–0.95) that preserves even the unusual choices. This is the
 setting where parameters actively expand the model's range rather than contracting it.
+
+!!! abstract "Creative-writing posture"
+    Favor exploration, then trim only the noisiest tail.
 
 ---
 
@@ -320,6 +338,9 @@ options, but the two most unusual choices are excluded by p=0.85.
 
 ## Step 2: Understand the Entropy Progression
 
+!!! info "Entropy lens"
+    Use entropy as a quick proxy for how deterministic or exploratory each configuration behaves.
+
 The experiment predicts this entropy ordering:
 
 ```
@@ -373,11 +394,17 @@ renormalization. The final entropy depends on which of these effects dominates.
 pipeline. Experiment 6 is where this becomes clear — the same entropy target can be reached from
 different starting distributions via different parameter combinations.
 
+!!! warning "Nonlinearity"
+    Similar entropy values can come from very different token-distribution shapes.
+
 ---
 
 ## Step 3: Read the Graphs — Panel by Panel
 
 The graph `exp6_usecases.png` has panels across 3 rows. Here is how to read each one.
+
+!!! info "Graph reading strategy"
+    Read row 1 (task intent) before row 3 (observed distribution outcomes).
 
 ---
 
@@ -536,6 +563,9 @@ which parameter interaction caused the surprise.
 
 The experiment provides this 5-step process:
 
+!!! tip "Execution discipline"
+    Change one variable at a time and keep a stable evaluation set during calibration.
+
 ```
 1. Start with temperature (deterministic vs creative goal)
 2. Add top-p (0.9 baseline; reduce for precision)
@@ -592,6 +622,9 @@ Run 100 sample outputs. Measure:
 Define goal → Set initial params → Run samples → Measure → Adjust → Repeat
 ```
 
+!!! success "What good tuning looks like"
+    Convergence usually happens in a few measured iterations, not one perfect guess.
+
 This loop usually converges in 3–5 iterations for a new task. Document every configuration and its
 measured entropy so you can reverse course if a change makes things worse.
 
@@ -610,6 +643,9 @@ Here is the full reasoning behind these rules:
 
 ### Decreasing Entropy
 
+!!! note "Priority order"
+    Temperature usually has the largest first-order effect; filter controls are second-order refinements.
+
 Entropy is high when many tokens have similar probabilities. To reduce it:
 
 1. **Decrease temperature first**: This is the most powerful lever. Even a T change from 0.7 to 0.3
@@ -622,6 +658,9 @@ Entropy is high when many tokens have similar probabilities. To reduce it:
    other two — if the distribution is flat within the top-k, entropy can still be high.
 
 ### Increasing Entropy
+
+!!! note "Boundary condition"
+    If diversity is still low at permissive settings, investigate model capability and prompt design.
 
 Entropy is low when one token dominates. To increase it:
 
@@ -641,6 +680,9 @@ Entropy is low when one token dominates. To increase it:
 ---
 
 ## Step 6: The Real-World Checklist — Why Each Item Matters
+
+!!! warning "Most common failure"
+    Teams often tune parameters before defining metrics, which makes outcomes impossible to judge.
 
 The experiment provides a six-item checklist. Here's the reasoning behind each item:
 
@@ -699,6 +741,9 @@ lever — it might be the prompt, the model, or the evaluation method.
 ---
 
 ## Step 7: What the Entropy Bands Tell You in Practice
+
+!!! abstract "Band interpretation"
+    Entropy bands are guidance ranges; always validate against your task metric and tolerance for variance.
 
 The experiment defines three entropy bands:
 
@@ -788,6 +833,9 @@ wrong. This is how intuition deepens.
 
 ## Step 9: Common Misconceptions — Cleared Up
 
+!!! danger "Misconceptions compound"
+    Using one generic preset for all tasks silently accumulates quality regressions.
+
 **Misconception 1: "The task table gives you the correct settings"**
 
 The table gives you starting points informed by common practice. Your specific model, fine-tuning
@@ -847,6 +895,9 @@ Raw logits → Temperature → Top-k → Top-p → Repetition penalty → Sample
 1. Define task → 2. Set T → 3. Set p → 4. Set k → 5. Set rep → 6. Measure → 7. Iterate
 ```
 
+!!! success "Portable framework"
+    This process transfers across providers and model families even when parameter names vary.
+
 **The entropy bands:**
 
 ```
@@ -904,6 +955,9 @@ When you open `exp6_usecases.png`, scan in this order:
 > **Final takeaway**: The parameter intuition you've built across six experiments now transfers to
 > every LLM task you encounter — across different providers, model families, and application types.
 > The specific numbers will change; the process and the principles won't.
+
+!!! success "Bottom line"
+    Preserve the method, adapt the numbers.
 
 ---
 

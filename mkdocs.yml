@@ -72,12 +72,12 @@ nav:
   - Home: index.md
   - "🎓 Learning Path":
       - Overview: learning/00-overview.md
-      - Experiment 1 - Temperature Sweep: learning/01-temperature.md
-      - Experiment 2 - Top-p (Nucleus) Sweep: learning/02-top-p.md
-      - Experiment 3 - Top-k Sweep: learning/03-top-k.md
-      - Experiment 4 - Combined Filters: learning/04-combined.md
-      - Experiment 5 - Repetition Penalties: learning/05-repetition.md
-      - Experiment 6 - Real Use Cases: learning/06-use-cases.md
+      - 1 - Temperature Sweep: learning/01-temperature.md
+      - 2 - Top-p (Nucleus) Sweep: learning/02-top-p.md
+      - 3 - Top-k Sweep: learning/03-top-k.md
+      - 4 - Combined Filters: learning/04-combined.md
+      - 5 - Repetition Penalties: learning/05-repetition.md
+      - 6 - Real Use Cases: learning/06-use-cases.md
   - "⚙️ Parameter Reference":
        - Parameter Map: parameters/parameter-map.md
        - Decoding Controls: parameters/decoding.md

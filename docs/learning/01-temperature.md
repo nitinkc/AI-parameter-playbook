@@ -1,4 +1,4 @@
-# 1: Temperature
+# Experiment 1: Temperature Sweep
 
 ## The Mental Model
 
@@ -56,13 +56,13 @@ assign     -0.8
 close      -1.0   ← model's least favorite
 ```
 
-**How to read this:**
+!!! info "Understanding Logits"
+    - Higher logit = model thinks this token fits better
+    - The logit is NOT a probability yet (2.2 doesn't mean 2.2%)
+    - The absolute values don't matter — only the differences between them matter
 
-- Higher logit = model thinks this token fits better
-- The logit is NOT a probability yet (2.2 doesn't mean 2.2%)
-- The absolute values don't matter — only the differences between them matter
-
-> **Key insight**: The logit list is like a **ranked list** of preferences, but the ranking alone doesn't tell you *how strong* those preferences are.
+!!! note "Key Insight: Ranking vs. Strength"
+    The logit list is like a **ranked list** of preferences, but the ranking alone doesn't tell you *how strong* those preferences are.
 
 ---
 
@@ -84,18 +84,15 @@ $$
 P(i) = \frac{e^{z_i}}{\sum_{j=1}^{n} e^{z_j}}
 $$
 
-**Why e^x?**
+!!! question "Why e^x?"
+    Because it has a useful property: it's **always positive**, and it makes bigger numbers
+    *much bigger* than smaller ones. A logit of 4.0 doesn't just beat 2.0 — it completely **dominates** it. 
+    This is what creates the "peaked" distribution.
 
-Because it has a useful property: it's **always positive**, and it makes bigger numbers
-*much bigger* than smaller ones. A logit of 4.0 doesn't just beat 2.0 — it completely **dominates** it. 
-
-This is what creates the "peaked" distribution.
-
-**What softmax guarantees:**
-
-- All probabilities are between 0 and 1
-- All probabilities add up to exactly 1.0
-- The ranking of tokens is preserved (highest logit = highest probability)
+!!! success "What Softmax Guarantees"
+    - All probabilities are between 0 and 1
+    - All probabilities add up to exactly 1.0
+    - The ranking of tokens is preserved (highest logit = highest probability)
 
 **Our example at baseline (T=1.0):**
 
@@ -146,9 +143,9 @@ escalate    0.9     →   1.8
 close      -1.0     →  -2.0
 ```
 
-The *differences* between logits **got bigger** (approve vs close: was 3.2, now 6.4). 
-
-> When softmax runs on these bigger differences, the winner **dominates** much more.
+!!! tip "When T < 1.0"
+    The *differences* between logits **get bigger** (approve vs close: was 3.2, now 6.4). 
+    When softmax runs on these bigger differences, the winner **dominates** much more.
 
 ### Case B: T = 2.0 (high temperature, less confident)
 
@@ -164,20 +161,21 @@ escalate    0.9     →   0.45
 close      -1.0     →  -0.5
 ```
 
-The differences got smaller (approve vs close: was 3.2, now 1.6). When softmax runs on these 
-compressed differences, the probabilities are much more equal.
+!!! tip "When T > 1.0"
+    The differences get smaller (approve vs close: was 3.2, now 1.6). When softmax runs on these 
+    compressed differences, the probabilities are much more equal.
 
-### The Critical Insight
+!!! warning "Critical Insight: Order Preservation"
+    **Temperature does NOT change the token ranking.**  
+    Temperature is **inversely proportional** to the "confidence gap" between tokens, but the order of which token is most likely doesn't change.
+    `approve` is still #1 at T=0.1 and at T=5.0.  
+    Temperature only changes **how much more likely the top token is than the others**.
 
-> **Temperature does NOT change the token ranking.**  
-> Temperature is **inversely proportional** to the "confidence gap" between tokens, but the order of which token is most likely doesn't change.
-> `approve` is still #1 at T=0.1 and at T=5.0.  
-> Temperature only changes **how much more likely the top token is than the others**.
-
+---
 
 ## Entropy: The Single Number That Captures Distribution Shape
 
-Entropy is useful because it tells you how spread out the model’s next-token probability distribution is. Temperature changes that spread, and entropy gives you a single number that summarizes it
+Entropy is useful because it tells you how spread out the model's next-token probability distribution is. Temperature changes that spread, and entropy gives you a single number that summarizes it
 
 A compact way to say it is: temperature controls the distribution, while entropy measures the result of that distribution.
 
@@ -198,12 +196,13 @@ The exact log base depends on the units you want;
 The choice is just a unit convention, like using Celsius vs Fahrenheit.
 
 in ML, Entropy is measured in bits because the common machine-learning definition uses base-2 logarithms, 
-and that makes the unit “how many binary yes/no questions of uncertainty” you have on average.
+and that makes the unit "how many binary yes/no questions of uncertainty" you have on average.
 
 
 ### Practical intuition
 
-Think of logits as the raw preference scores, temperature as the knob that sharpens or flattens those preferences, and entropy as the summary of how uncertain the final distribution is.
+!!! abstract "The Three-Part System"
+    Think of logits as the raw preference scores, temperature as the knob that sharpens or flattens those preferences, and entropy as the summary of how uncertain the final distribution is.
 
 ---
 
@@ -223,24 +222,23 @@ Each bar chart shows the **probability distribution** for one temperature value.
 - Y-axis: probability (0 = impossible, 1.0 = certain)
 - Bar height = how likely the model is to pick that token
 
-**How to interpret:**
-
-```
-T = 0.1  →  One bar is near 1.0, everything else is basically flat near zero
-             = Model is almost certain. Sample 1000 times → same answer 990+ times.
-
-T = 0.5  →  Top bar is tall, next few are visible, rest still near zero
-             = Model is fairly confident but alternatives exist.
-
-T = 1.0  →  Top bar maybe 0.35, next bars clearly visible
-             = Baseline behavior. Mix of confidence and diversity.
-
-T = 2.0  →  All bars become more similar heights
-             = Model is unsure. Many tokens have meaningful probability.
-
-T = 5.0  →  All bars are nearly identical heights
-             = Model is almost completely random. Like rolling a 20-sided die.
-```
+!!! info "How to Interpret Each Bar Chart"
+    ```
+    T = 0.1  →  One bar is near 1.0, everything else is basically flat near zero
+                 = Model is almost certain. Sample 1000 times → same answer 990+ times.
+    
+    T = 0.5  →  Top bar is tall, next few are visible, rest still near zero
+                 = Model is fairly confident but alternatives exist.
+    
+    T = 1.0  →  Top bar maybe 0.35, next bars clearly visible
+                 = Baseline behavior. Mix of confidence and diversity.
+    
+    T = 2.0  →  All bars become more similar heights
+                 = Model is unsure. Many tokens have meaningful probability.
+    
+    T = 5.0  →  All bars are nearly identical heights
+                 = Model is almost completely random. Like rolling a 20-sided die.
+    ```
 
 **The white-bordered bar**: That's the token with the highest probability. The annotation shows `P(top)=X%` — that percentage shrinks as temperature rises.
 
@@ -258,21 +256,20 @@ This is a **line chart** where:
 - Y-axis: probability of the single most likely token
 - White dots: the 5 specific temperatures you tested
 
-**How to read it:**
+!!! example "Reading the Curve"
+    The curve drops steeply from left to right:
+    
+    - At T=0.1: top token has ~97% probability (model almost always picks it)
+    - At T=1.0: top token has ~36% probability (baseline)
+    - At T=5.0: top token has ~15% probability (barely more likely than random)
+    
+    The dashed vertical line at T=1.0 is the baseline reference.
 
-The curve drops steeply from left to right:
+!!! note "What the Curve Shape Tells You"
+    The drop is not linear — it's steeper at low temperatures. Going from T=0.1 to T=0.3 makes a huge difference. Going from T=3.0 to T=5.0 makes very little difference. This is the "diminishing returns" zone.
 
-- At T=0.1: top token has ~97% probability (model almost always picks it)
-- At T=1.0: top token has ~36% probability (baseline)
-- At T=5.0: top token has ~15% probability (barely more likely than random)
-
-The dashed vertical line at T=1.0 is the baseline reference.
-
-**What the curve shape tells you:**
-
-The drop is not linear — it's steeper at low temperatures. Going from T=0.1 to T=0.3 makes a huge difference. Going from T=3.0 to T=5.0 makes very little difference. This is the "diminishing returns" zone.
-
-> **Practical reading**: If you want to find the sweet spot between "too deterministic" and "too random", look for where the curve starts to flatten. That's usually around T=0.7–1.2.
+!!! tip "Finding Your Sweet Spot"
+    If you want to find the sweet spot between "too deterministic" and "too random", look for where the curve starts to flatten. That's usually around T=0.7–1.2.
 
 ---
 
@@ -285,26 +282,24 @@ The drop is not linear — it's steeper at low temperatures. Going from T=0.1 to
 
 The unit is **bits**. For a 20-token vocabulary, maximum entropy is about 4.32 bits (log₂ of 20).
 
-**How to read this chart:**
+!!! example "Reading the Entropy Chart"
+    - X-axis: temperature
+    - Y-axis: Shannon entropy in bits
+    - The line rises smoothly as temperature increases
+    
+    ```
+    Low entropy (< 1 bit)   = Very peaked, deterministic behavior
+    Medium entropy (1–3 bit) = Balanced, diverse but not random
+    High entropy (3–4 bit)  = Very flat, nearly random
+    ```
 
-- X-axis: temperature
-- Y-axis: Shannon entropy in bits
-- The line rises smoothly as temperature increases
-
-```
-Low entropy (< 1 bit)   = Very peaked, deterministic behavior
-Medium entropy (1–3 bit) = Balanced, diverse but not random
-High entropy (3–4 bit)  = Very flat, nearly random
-```
-
-**Why entropy matters more than just looking at the top probability:**
-
-Imagine two distributions:
-
-- Distribution A: [0.9, 0.05, 0.05] — entropy is low, model mostly picks token 0
-- Distribution B: [0.4, 0.4, 0.2] — entropy is higher, model is genuinely split
-
-Both have a clear "winner" but they behave very differently when sampled repeatedly. Entropy captures this full picture in a single number.
+!!! warning "Why Entropy Matters More Than Just Top Probability"
+    Imagine two distributions:
+    
+    - Distribution A: [0.9, 0.05, 0.05] — entropy is low, model mostly picks token 0
+    - Distribution B: [0.4, 0.4, 0.2] — entropy is higher, model is genuinely split
+    
+    Both have a clear "winner" but they behave very differently when sampled repeatedly. Entropy captures this full picture in a single number.
 
 ---
 
@@ -318,27 +313,23 @@ This is the most information-dense panel. It shows the **full distribution** acr
 - Y-axis: token index (bottom = token 0, top = token 19)
 - Color: probability (brighter/yellower = higher probability, darker/purple = lower)
 
-**How to read it:**
+!!! info "How to Read the Heatmap"
+    **At the far left (low T):**
+    
+    - Token 0 has a very bright bar — it's capturing almost all the probability
+    - Tokens 1–19 are mostly dark purple (near zero)
+    
+    **As you move right (higher T):**
+    
+    - Token 0's bar dims gradually
+    - Other tokens' bars brighten
+    - By T=5.0, all tokens are roughly the same shade of medium brightness
 
-At the far left (low T):
-
-- Token 0 has a very bright bar — it's capturing almost all the probability
-- Tokens 1–19 are mostly dark purple (near zero)
-
-As you move right (higher T):
-
-- Token 0's bar dims gradually
-- Other tokens' bars brighten
-- By T=5.0, all tokens are roughly the same shade of medium brightness
-
-**The white dashed vertical line** marks T=1.0 (baseline). Notice the transition from concentrated to spread happens roughly around this point.
-
-**What this tells you at a glance:**
-
-- A distribution with one bright token + many dark tokens = low entropy, high confidence
-- A distribution where all tokens are medium brightness = high entropy, random
-
-> **Pro tip**: The heatmap lets you see which specific tokens "activate" as temperature rises. Some tokens go from nearly impossible to meaningful contributors. Those are the tokens that represent creative or unusual alternatives.
+!!! abstract "What This Tells You at a Glance"
+    - A distribution with one bright token + many dark tokens = low entropy, high confidence
+    - A distribution where all tokens are medium brightness = high entropy, random
+    
+    **Pro tip**: The heatmap lets you see which specific tokens "activate" as temperature rises. Some tokens go from nearly impossible to meaningful contributors. Those are the tokens that represent creative or unusual alternatives.
 
 ---
 
@@ -361,26 +352,25 @@ close      : -0.5
 optimize   : -1.2
 ```
 
-**At T = 0.2 (very deterministic):**
 
-Scaled logits: [12.5, 10.0, 4.0, -2.5, -6.0]
-→ Softmax → probabilities: [~0.92, ~0.07, ~0.01, ~0.00, ~0.00]
 
-Behavior: Model says `escalate` 92% of the time. Reliable, consistent, predictable. Good for a production system.
+??? example "At T = 0.2 (very deterministic)"
+    Scaled logits: [12.5, 10.0, 4.0, -2.5, -6.0]
+    → Softmax → probabilities: [~0.92, ~0.07, ~0.01, ~0.00, ~0.00]
+    
+    **Behavior**: Model says `escalate` 92% of the time. Reliable, consistent, predictable. Good for a production system.
 
-**At T = 1.0 (baseline):**
+??? example "At T = 1.0 (baseline)"
+    Scaled logits: [2.5, 2.0, 0.8, -0.5, -1.2]
+    → Softmax → probabilities: [~0.52, ~0.32, ~0.12, ~0.03, ~0.01]
+    
+    **Behavior**: Model says `escalate` 52% of the time, `notify` 32% of the time. Still mostly right but with variation.
 
-Scaled logits: [2.5, 2.0, 0.8, -0.5, -1.2]
-→ Softmax → probabilities: [~0.52, ~0.32, ~0.12, ~0.03, ~0.01]
-
-Behavior: Model says `escalate` 52% of the time, `notify` 32% of the time. Still mostly right but with variation.
-
-**At T = 2.0 (creative):**
-
-Scaled logits: [1.25, 1.0, 0.4, -0.25, -0.6]
-→ Softmax → probabilities: [~0.35, ~0.27, ~0.15, ~0.12, ~0.11]
-
-Behavior: Still prefers `escalate` but `notify`, `delay`, and even `close` get real probability. You'd see different answers on different runs. Bad for classification, potentially useful for generating diverse scenarios.
+??? example "At T = 2.0 (creative)"
+    Scaled logits: [1.25, 1.0, 0.4, -0.25, -0.6]
+    → Softmax → probabilities: [~0.35, ~0.27, ~0.15, ~0.12, ~0.11]
+    
+    **Behavior**: Still prefers `escalate` but `notify`, `delay`, and even `close` get real probability. You'd see different answers on different runs. Bad for classification, potentially useful for generating diverse scenarios.
 
 ---
 
@@ -398,59 +388,69 @@ Is there ONE correct answer? (classification, factual QA, code)
 
 ### The Five Temperature "Zones"
 
-**Zone 1: T = 0.0 to 0.2 — Greedy/Deterministic**
+??? success "Zone 1: T = 0.0 to 0.2 — Greedy/Deterministic"
+    - Same answer every time (or nearly so)
+    - Use for: classification labels, extracting structured data, code with strict syntax, factual answers
+    - Risk: Can be repetitive, may miss correct answers that require slight variation
 
-- Same answer every time (or nearly so)
-- Use for: classification labels, extracting structured data, code with strict syntax, factual answers
-- Risk: Can be repetitive, may miss correct answers that require slight variation
+??? note "Zone 2: T = 0.2 to 0.5 — Focused"
+    - Strong preference for the top tokens, slight variation
+    - Use for: summarization, question answering, customer support, most professional tasks
+    - Risk: May be slightly "stiff" or formulaic
 
-**Zone 2: T = 0.2 to 0.5 — Focused**
+??? abstract "Zone 3: T = 0.5 to 0.8 — Balanced (most common production setting)"
+    - Good balance between consistency and natural-sounding variation
+    - Use for: chatbots, writing assistance, code generation, general assistants
+    - Risk: Some outputs will differ significantly — requires quality checking
 
-- Strong preference for the top tokens, slight variation
-- Use for: summarization, question answering, customer support, most professional tasks
-- Risk: May be slightly "stiff" or formulaic
+??? example "Zone 4: T = 0.8 to 1.2 — Creative"
+    - Model takes risks, tries unusual combinations
+    - Use for: brainstorming, creative writing, generating varied examples
+    - Risk: Some outputs will be weird or off-topic
 
-**Zone 3: T = 0.5 to 0.8 — Balanced (most common production setting)**
-
-- Good balance between consistency and natural-sounding variation
-- Use for: chatbots, writing assistance, code generation, general assistants
-- Risk: Some outputs will differ significantly — requires quality checking
-
-**Zone 4: T = 0.8 to 1.2 — Creative**
-
-- Model takes risks, tries unusual combinations
-- Use for: brainstorming, creative writing, generating varied examples
-- Risk: Some outputs will be weird or off-topic
-
-**Zone 5: T > 1.5 — Exploratory**
-
-- Model is essentially rolling dice
-- Use for: research/testing, understanding the model's vocabulary, stress testing
-- Risk: Often produces incoherent or nonsensical text in production
+??? warning "Zone 5: T > 1.5 — Exploratory"
+    - Model is essentially rolling dice
+    - Use for: research/testing, understanding the model's vocabulary, stress testing
+    - Risk: Often produces incoherent or nonsensical text in production
 
 ---
 
 ## Step 7: Common Misconceptions — Cleared Up
 
-**Misconception 1: "Higher temperature makes the model smarter/more creative"**
+??? danger "Misconception 1: 'Higher temperature makes the model smarter/more creative'"
+    Not exactly. Higher temperature makes the model *less predictable*, which can look like creativity. But the model's knowledge and capabilities don't change. A high temperature can produce brilliant unusual ideas OR complete nonsense — you can't control which. Temperature changes the *distribution of outputs*, not the quality of the model's underlying knowledge.
 
-Not exactly. Higher temperature makes the model *less predictable*, which can look like creativity. But the model's knowledge and capabilities don't change. A high temperature can produce brilliant unusual ideas OR complete nonsense — you can't control which. Temperature changes the *distribution of outputs*, not the quality of the model's underlying knowledge.
+??? danger "Misconception 2: 'Temperature = 0 gives the best answer'"
+    Temperature = 0 (greedy decoding) gives the *most probable* answer, not necessarily the *best* answer. Sometimes the second or third most likely token leads to a better overall sentence or idea. Greedy decoding can also get stuck in repetitive loops because it always picks the same token given the same context.
 
-**Misconception 2: "Temperature = 0 gives the best answer"**
+??? danger "Misconception 3: 'The temperature I set applies to the whole generation'"
+    True for standard APIs, but some advanced systems apply different temperatures to different parts of the output (e.g., stricter at the start of a list, looser for creative expansions). Keep this in mind when you see fine-grained control systems.
 
-Temperature = 0 (greedy decoding) gives the *most probable* answer, not necessarily the *best* answer. Sometimes the second or third most likely token leads to a better overall sentence or idea. Greedy decoding can also get stuck in repetitive loops because it always picks the same token given the same context.
-
-**Misconception 3: "The temperature I set applies to the whole generation"**
-
-True for standard APIs, but some advanced systems apply different temperatures to different parts of the output (e.g., stricter at the start of a list, looser for creative expansions). Keep this in mind when you see fine-grained control systems.
-
-**Misconception 4: "Low temperature means the model is thinking harder"**
-
-Temperature is applied *after* the model has _**already done all its thinking**_ (the forward pass). It only affects the sampling step. The model's reasoning quality doesn't change — you're just changing how you pick from the resulting probability distribution.
+??? danger "Misconception 4: 'Low temperature means the model is thinking harder'"
+    Temperature is applied *after* the model has _**already done all its thinking**_ (the forward pass). It only affects the sampling step. The model's reasoning quality doesn't change — you're just changing how you pick from the resulting probability distribution.
 
 ---
 
 ## Step 8: How to Read the Sample Output Text
+
+
+=== ":octicons-file-code-16: `docs/stylesheets/extra.css`"
+
+        ``` css
+        .md-typeset .admonition,
+        .md-typeset details {
+          border-width: 0;
+          border-left-width: 4px;
+        }
+        ```
+
+=== ":octicons-file-code-16: `mkdocs.yml`"
+    
+        ``` yaml
+        extra_css:
+          - stylesheets/extra.css
+        ```
+
 
 In the original experiment, you'd see output like:
 
@@ -469,15 +469,14 @@ assign        0.000
 close         0.000
 ```
 
-**Reading guide:**
-
-| Field | What it means |
-|-------|---------------|
-| `Entropy: 0.412` | Very low — nearly all probability mass on one token |
-| `approve 0.967` | 96.7% probability. If you sample 1000 times, ~967 are "approve" |
-| `reject 0.023` | 2.3% probability. Rare but possible |
-| `review 0.005` | 0.5% probability. Almost never |
-| Everything else | Effectively zero — these tokens are off the table |
+!!! info "Reading Guide for Sample Output"
+    | Field | What it means |
+    |-------|---------------|
+    | `Entropy: 0.412` | Very low — nearly all probability mass on one token |
+    | `approve 0.967` | 96.7% probability. If you sample 1000 times, ~967 are "approve" |
+    | `reject 0.023` | 2.3% probability. Rare but possible |
+    | `review 0.005` | 0.5% probability. Almost never |
+    | Everything else | Effectively zero — these tokens are off the table |
 
 ```
 === T=2.0 (very creative) ===
@@ -494,16 +493,16 @@ assign        0.068
 close         0.036
 ```
 
-**Reading guide:**
+!!! info "Reading High-Temperature Output"
+    | Field            | What it means                                      |
+    |:-----------------|:---------------------------------------------------|
+    | `Entropy: 2.891` | High — many tokens have meaningful probability     |
+    | `optimize 0.152` | Highest at 15.2% — but that's a very slim lead     |
+    | `approve 0.138`  | 13.8% — barely behind optimize                     |
+    | `close 0.036`    | 3.6% — even the "worst" token has real probability |
 
-| Field            | What it means                                      |
-|:-----------------|:---------------------------------------------------|
-| `Entropy: 2.891` | High — many tokens have meaningful probability     |
-| `optimize 0.152` | Highest at 15.2% — but that's a very slim lead     |
-| `approve 0.138`  | 13.8% — barely behind optimize                     |
-| `close 0.036`    | 3.6% — even the "worst" token has real probability |
-
-Notice that at T=2.0, `optimize` is now the top token — but `approve` had a higher logit! This happens because high temperature flattens the distribution enough that statistical noise and renormalization can temporarily shift ranks. This is one reason very high temperatures can feel "wrong" — the model's actual preferred answer is no longer the most sampled one.
+!!! warning "An Interesting Phenomenon"
+    Notice that at T=2.0, `optimize` is now the top token — but `approve` had a higher logit! This happens because high temperature flattens the distribution enough that statistical noise and renormalization can temporarily shift ranks. This is one reason very high temperatures can feel "wrong" — the model's actual preferred answer is no longer the most sampled one.
 
 ---
 
@@ -544,13 +543,12 @@ reject   = 36.6/134.5 = 27.2%    reject  = 2.46/7.47 = 32.9%
 review   = 16.4/134.5 = 12.2%    review  = 2.01/7.47 = 26.9%
 ```
 
-**What changed:**
-
-- At T=0.5: `approve` has 60.6% — a strong lead
-- At T=2.0: `approve` has 40.2% — still leads but far from dominant
-- At T=2.0: `review` went from 12.2% to 26.9% — a huge jump!
-
-This is the core mechanism. Low T amplifies differences. High T compresses them.
+!!! abstract "What Changed"
+    - At T=0.5: `approve` has 60.6% — a strong lead
+    - At T=2.0: `approve` has 40.2% — still leads but far from dominant
+    - At T=2.0: `review` went from 12.2% to 26.9% — a huge jump!
+    
+    This is the core mechanism. Low T amplifies differences. High T compresses them.
 
 ---
 
@@ -570,28 +568,29 @@ Now that you understand temperature deeply, you're ready to understand why it in
 
 When you open `exp1_temperature.png`, scan in this order:
 
-```
-1. Look at the bar chart panels
-   → Are the bars peaked (one tall bar) or flat (all similar)?
-   → Peaked = low T, flat = high T
-
-2. Look at entropy values in the panel titles
-   → < 1.0 bits = very deterministic
-   → 1.0–2.5 bits = balanced
-   → > 2.5 bits = highly random
-
-3. Look at the "Top-token Prob" line chart
-   → Where does the curve flatten? That's where further T increases stop mattering much
-   → The white dots are your specific test temperatures
-
-4. Look at the entropy curve
-   → Should mirror the top-token curve (as top prob drops, entropy rises)
-   → Check that they're consistent
-
-5. Look at the heatmap
-   → Which tokens "light up" as T increases?
-   → How many tokens get above ~10% probability at high T?
-```
+!!! info "Cheat Sheet for Reading Graphs"
+    ```
+    1. Look at the bar chart panels
+       → Are the bars peaked (one tall bar) or flat (all similar)?
+       → Peaked = low T, flat = high T
+    
+    2. Look at entropy values in the panel titles
+       → < 1.0 bits = very deterministic
+       → 1.0–2.5 bits = balanced
+       → > 2.5 bits = highly random
+    
+    3. Look at the "Top-token Prob" line chart
+       → Where does the curve flatten? That's where further T increases stop mattering much
+       → The white dots are your specific test temperatures
+    
+    4. Look at the entropy curve
+       → Should mirror the top-token curve (as top prob drops, entropy rises)
+       → Check that they're consistent
+    
+    5. Look at the heatmap
+       → Which tokens "light up" as T increases?
+       → How many tokens get above ~10% probability at high T?
+    ```
 
 ---
 
@@ -607,7 +606,8 @@ When you open `exp1_temperature.png`, scan in this order:
 | Entropy     | One number measuring how spread out a distribution is                        |
 | The heatmap | Shows full distribution across all tokens at all temperatures simultaneously |
 
-> **Final takeaway**: Temperature is the most important parameter to understand first because every other parameter in LLM sampling operates on top of the temperature-scaled distribution. Master this, and the rest becomes intuitive.
+!!! success "Final Takeaway"
+    **Temperature is the most important parameter to understand first because every other parameter in LLM sampling operates on top of the temperature-scaled distribution. Master this, and the rest becomes intuitive.**
 
 ---
 

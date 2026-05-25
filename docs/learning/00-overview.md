@@ -12,6 +12,9 @@ When an LLM generates a token, it:
 
 Each parameter acts at a different stage, so understanding *where* it acts matters as much as understanding *what* it does.
 
+!!! info "Core Mental Model"
+	Parameters do not all act at the same time. They intervene at specific stages of decoding.
+
 ```text
 Raw Logits -> [Temperature] -> [Top-k] -> [Top-p] -> [Repetition Penalty] -> Sample
 ```
@@ -27,6 +30,9 @@ You have probably seen statements like:
 
 Those are directionally true, but not enough for reliable tuning. The way to build intuition is to **test parameters systematically**.
 
+!!! tip "How to use this guide"
+	Treat each experiment as a controlled lab: isolate one variable first, then combine.
+
 ## 6-Experiment Learning Path
 
 | #  | Experiment           | Focus                                                 | Time   | Takeaway                                                |
@@ -40,6 +46,9 @@ Those are directionally true, but not enough for reliable tuning. The way to bui
 
 **Total time: ~45 minutes** for practical parameter intuition.
 
+!!! success "Outcome"
+	You will leave this path with a reusable tuning workflow, not just one-off settings.
+
 ## How the Experiments Work
 
 Each experiment uses a **local Python simulator** that:
@@ -50,6 +59,9 @@ Each experiment uses a **local Python simulator** that:
 4. Reports metrics like entropy and top-token probability
 
 Why this still works: the decoding math is the same regardless of whether you use a toy simulator or a production API.
+
+!!! note "Why local-first works"
+	The simulator is not a language model, but the sampling math is the same math used by production models.
 
 ## What You Will Learn
 
@@ -62,6 +74,9 @@ After the path, you should be able to:
 - Transfer the same logic to cloud/local model providers
 
 ## Quick Start
+
+!!! warning "Environment note"
+	Run commands from the project root so relative paths resolve correctly.
 
 ```bash
 # Optional virtual environment
@@ -91,6 +106,9 @@ review        0.032
 👉 **Start with [Experiment 1: Temperature Sweep](01-temperature.md)**
 
 ## Optional: Move to Cloud Experiments
+
+!!! abstract "Transfer principle"
+	Learn mechanisms locally, then reuse the same reasoning with cloud-specific parameter names.
 
 Once you understand fundamentals locally, test against real APIs:
 
