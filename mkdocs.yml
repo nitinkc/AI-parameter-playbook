@@ -1,6 +1,6 @@
 site_name: AI Parameter Playbook — Learn LLM Parameters
 site_description: Understand LLM parameters through hands-on local notebooks. No API keys required to start.
-repo_url: https://example.invalid/replace-me
+repo_url: https://github.com/nitinkc/AI-parameter-playbook
 
 theme:
   name: material
