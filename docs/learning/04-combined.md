@@ -611,25 +611,20 @@ The higher the top-p threshold, the lower the temperature where that top-p becom
 !!! warning "Misconceptions matter"
     Most decoding regressions come from interaction assumptions that are almost true, but not quite.
 
-**Misconception 1: "More parameters = better control"**
+??? danger "**Misconception 1: "More parameters = better control"**"
+    Not necessarily. Adding more filtering parameters can lead to conflicting effects that produce surprising results. Start with one parameter, understand its effect, then add another. Building up from simplicity is more reliable than configuring all three at once.
 
-Not necessarily. Adding more filtering parameters can lead to conflicting effects that produce surprising results. Start with one parameter, understand its effect, then add another. Building up from simplicity is more reliable than configuring all three at once.
+??? danger "**Misconception 2: "The presets in the table are universally correct"**"
+    The "Precise: T=0.2, p=0.9, k=40" preset works well for many code generation tasks — but if your model's distribution for a particular prompt is already peaked, p=0.9 will be redundant, and you're doing work for nothing. Presets are starting points, not ground truth.
 
-**Misconception 2: "The presets in the table are universally correct"**
+??? danger "**Misconception 3: "If I combine T=0.7 and p=0.9, I get their individual effects added together"**"
+    Not quite. The effects interact multiplicatively, not additively. T=0.7 changes the shape of the distribution that p=0.9 then cuts. The final entropy is not "entropy from T=0.7" + "entropy reduction from p=0.9." You have to trace through the pipeline to get the actual result.
 
-The "Precise: T=0.2, p=0.9, k=40" preset works well for many code generation tasks — but if your model's distribution for a particular prompt is already peaked, p=0.9 will be redundant, and you're doing work for nothing. Presets are starting points, not ground truth.
+??? danger "**Misconception 4: "High entropy is always bad"**"
+    High entropy means more diversity and randomness. For brainstorming or creative writing, high entropy is exactly what you want. "Bad" entropy means entropy that's higher than your task requires — which causes incoherence. Match entropy to task requirements.
 
-**Misconception 3: "If I combine T=0.7 and p=0.9, I get their individual effects added together"**
-
-Not quite. The effects interact multiplicatively, not additively. T=0.7 changes the shape of the distribution that p=0.9 then cuts. The final entropy is not "entropy from T=0.7" + "entropy reduction from p=0.9." You have to trace through the pipeline to get the actual result.
-
-**Misconception 4: "High entropy is always bad"**
-
-High entropy means more diversity and randomness. For brainstorming or creative writing, high entropy is exactly what you want. "Bad" entropy means entropy that's higher than your task requires — which causes incoherence. Match entropy to task requirements.
-
-**Misconception 5: "If my output looks bad, I should lower the temperature"**
-
-Maybe. But the cause might be top-p being too permissive, or top-k being too large, or the model simply not knowing the answer. Lowering temperature when the problem is model capability doesn't help. Always diagnose first: is the output incoherent (suggests high entropy → lower T or p), or is it repetitive (suggests low entropy → raise T or use repetition penalty)?
+??? danger "**Misconception 5: "If my output looks bad, I should lower the temperature"**"
+    Maybe. But the cause might be top-p being too permissive, or top-k being too large, or the model simply not knowing the answer. Lowering temperature when the problem is model capability doesn't help. Always diagnose first: is the output incoherent (suggests high entropy → lower T or p), or is it repetitive (suggests low entropy → raise T or use repetition penalty)?
 
 ---
 
@@ -667,15 +662,15 @@ Step 4: Measure
 !!! example "Tuning workflow"
     Start from the nearest preset by task, then change one parameter at a time.
 
-| Use Case | T | p | k | Expected Entropy |
-|----------|---|---|---|-----------------|
-| Classification | 0.1–0.2 | 0.9 | 20 | < 0.5 bits |
-| Factual QA | 0.3 | 0.9 | 40 | 0.5–1.0 bits |
-| Code generation | 0.2 | 0.95 | 40 | 0.8–1.5 bits |
-| Summarization | 0.5 | 0.9 | 50 | 1.0–1.5 bits |
-| General chat | 0.7 | 0.9 | 50 | 1.3–1.8 bits |
-| Creative writing | 1.0 | 0.95 | 100 | 1.8–2.5 bits |
-| Brainstorming | 1.2 | 1.0 | 0 | 2.5–3.5 bits |
+| Use Case         |    T     |   p   |  k   | Expected Entropy |
+|:-----------------|:--------:|:-----:|:----:|:-----------------|
+| Classification   | 0.1–0.2  |  0.9  |  20  | < 0.5 bits       |
+| Factual QA       |   0.3    |  0.9  |  40  | 0.5–1.0 bits     |
+| Code generation  |   0.2    | 0.95  |  40  | 0.8–1.5 bits     |
+| Summarization    |   0.5    |  0.9  |  50  | 1.0–1.5 bits     |
+| General chat     |   0.7    |  0.9  |  50  | 1.3–1.8 bits     |
+| Creative writing |   1.0    | 0.95  | 100  | 1.8–2.5 bits     |
+| Brainstorming    |   1.2    |  1.0  |  0   | 2.5–3.5 bits     |
 
 ---
 

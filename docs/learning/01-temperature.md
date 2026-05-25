@@ -433,25 +433,6 @@ Is there ONE correct answer? (classification, factual QA, code)
 
 ## Step 8: How to Read the Sample Output Text
 
-
-=== ":octicons-file-code-16: `docs/stylesheets/extra.css`"
-
-        ``` css
-        .md-typeset .admonition,
-        .md-typeset details {
-          border-width: 0;
-          border-left-width: 4px;
-        }
-        ```
-
-=== ":octicons-file-code-16: `mkdocs.yml`"
-    
-        ``` yaml
-        extra_css:
-          - stylesheets/extra.css
-        ```
-
-
 In the original experiment, you'd see output like:
 
 ```
