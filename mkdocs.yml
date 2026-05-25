@@ -68,7 +68,7 @@ plugins:
 
 nav:
   - Home: index.md
-  - "🎓 Learning Path (Free & Local-First)":
+  - "🎓 Learning Path":
       - Overview: learning/00-overview.md
       - Experiment 1 - Temperature Sweep: learning/01-temperature.md
       - Experiment 2 - Top-p (Nucleus) Sweep: learning/02-top-p.md
