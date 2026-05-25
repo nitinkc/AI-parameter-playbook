@@ -666,15 +666,15 @@ When you open `exp4_combined.png`, scan in this order:
 
 ## Summary
 
-| Concept | One-sentence explanation |
-|---------|--------------------------|
-| Pipeline order | Temperature → Top-k → Top-p → Sample; order is not arbitrary |
-| Redundant filtering | When one parameter makes another irrelevant (peaked distribution + low p) |
-| Competing controls | When high T and low p fight each other (flat distribution, then tight cut) |
-| Multiplied effect | Multiple conservative settings compounding to near-greedy behavior |
-| Safety net pattern | Top-k as hard ceiling + top-p for adaptive focus within that ceiling |
-| Entropy budget | Temperature adds entropy; top-k and top-p subtract it |
-| Temperature dominates | Across all interaction effects, temperature has the largest single impact |
+| Concept               | One-sentence explanation                                                   |
+|:----------------------|:---------------------------------------------------------------------------|
+| Pipeline order        | Temperature → Top-k → Top-p → Sample; order is not arbitrary               |
+| Redundant filtering   | When one parameter makes another irrelevant (peaked distribution + low p)  |
+| Competing controls    | When high T and low p fight each other (flat distribution, then tight cut) |
+| Multiplied effect     | Multiple conservative settings compounding to near-greedy behavior         |
+| Safety net pattern    | Top-k as hard ceiling + top-p for adaptive focus within that ceiling       |
+| Entropy budget        | Temperature adds entropy; top-k and top-p subtract it                      |
+| Temperature dominates | Across all interaction effects, temperature has the largest single impact  |
 
 > **Final takeaway**: No single parameter setting is right for all tasks. In production, you build intuition by starting with the appropriate preset for your task type, then adjusting one parameter at a time while measuring entropy and output quality. The four interaction patterns — redundant, competing, multiplied, safety net — give you a vocabulary to diagnose what's happening when outputs surprise you.
 

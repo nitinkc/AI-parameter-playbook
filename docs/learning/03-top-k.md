@@ -10,14 +10,14 @@
 
 You already know that top-p creates a dynamic nucleus — a set of tokens that together account for p% of the probability mass. The nucleus shrinks when the model is confident and expands when it's uncertain.
 
-Top-k is older, simpler, and solves the same underlying problem — "how do I stop the model from sampling garbage tokens?" — but with a completely different approach:
+Top-k is older, simpler, and solves the same underlying problem — "how do I stop the model from sampling garbage tokens?" — but with a **completely different approach**:
 
 > Instead of asking "which tokens together cover 90% of the probability?",  
 > top-k simply asks "which tokens are in the top k by rank?"
 
-That's it. No cumulative sum. No dynamic adjustment. Just: rank all tokens, keep the top k, throw away the rest.
+That's it. No cumulative sum. No dynamic adjustment. Just: **_rank all tokens, keep the top k, throw away the rest_**.
 
-The simplicity is both its strength and its weakness. Understanding *exactly* why will make you much better at choosing between top-k and top-p in practice.
+The **simplicity** is both its strength and its weakness. Understanding *exactly* why will make you much better at choosing between top-k and top-p in practice.
 
 ---
 
@@ -48,7 +48,6 @@ This is the key difference from top-p, and it's what makes top-k both simpler an
 
 ## Step 1: Understand the Algorithm — Exactly How Top-k Works
 
-```
 1. Start with the probability distribution after softmax
    (optionally after temperature scaling)
 
@@ -61,7 +60,6 @@ This is the key difference from top-p, and it's what makes top-k both simpler an
    by the total of the top-k tokens' probabilities
 
 5. Sample from the renormalized top-k set
-```
 
 Compare this to top-p's algorithm:
 
@@ -70,8 +68,8 @@ Top-p: Walk down the sorted list until cumulative sum ≥ p → stop
 Top-k: Walk exactly k steps down the sorted list → stop
 ```
 
-Top-p has a variable stopping condition (cumulative probability threshold).  
-Top-k has a fixed stopping condition (position in rank).
+- Top-p has a variable stopping condition (cumulative probability threshold).  
+- Top-k has a fixed stopping condition (position in rank).
 
 ---
 
@@ -252,12 +250,14 @@ Nucleus = {B1–B10}. Nucleus size = 10.
 
 ### The Diagnosis
 
-| Distribution | top-k=5 problem | top-p=0.9 solution |
-|---|---|---|
-| Peaked (confident model) | Keeps too many tokens (wasteful but harmless) | Shrinks nucleus to 2 tokens correctly |
-| Flat (uncertain model) | Cuts too many tokens (loses real alternatives) | Expands nucleus to 10 tokens correctly |
+| Distribution             | top-k=5 problem                                | top-p=0.9 solution                     |
+|:-------------------------|:-----------------------------------------------|:---------------------------------------|
+| Peaked (confident model) | Keeps too many tokens (wasteful but harmless)  | Shrinks nucleus to 2 tokens correctly  |
+| Flat (uncertain model)   | Cuts too many tokens (loses real alternatives) | Expands nucleus to 10 tokens correctly |
 
-Top-k is neither too tight nor too loose — it's wrong in different directions depending on the distribution shape. Top-p adapts; top-k doesn't.
+Top-k is neither too tight nor too loose — it's **wrong** in different directions **depending** on the distribution shape.
+
+>=Top-p adapts; top-k doesn't.
 
 ---
 
@@ -666,6 +666,8 @@ Are you combining with top-p anyway?
 ## Quick Reference: Graph Interpretation Cheat Sheet
 
 When you open `exp3_top_k.png`, scan in this order:
+
+![exp3_top_k.png](../notebooks/exp3_top_k.png)
 
 ```
 1. Look at the bar chart panels (row 1)
