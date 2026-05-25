@@ -1,4 +1,4 @@
-# Experiment 2: Top-p (Nucleus Sampling) — A Step-by-Step Learning Guide
+# Experiment 2: Top-p (Nucleus Sampling)
 
 > **Who it's for**: Anyone who completed Experiment 1 and wants to understand nucleus sampling deeply.  
 > **What you'll get**: The ability to look at any top-p graph and immediately understand what it's telling you — and why top-p behaves so differently from temperature.
@@ -7,11 +7,14 @@
 
 ## Before You Start: The Problem Temperature Alone Doesn't Solve
 
-You learned in Experiment 1 that temperature reshapes probability distributions. But temperature has a fundamental limitation: **it always includes every token in the sampling pool**.
+You learned in Experiment 1 that temperature **_reshapes_** probability distributions. 
+But temperature has a fundamental _**limitation**_: **it always includes every token in the sampling pool**.
 
-Even at T=0.5, tokens with logit=-1.0 still have *some* probability. Usually tiny — but "tiny" adds up when you're generating thousands of tokens. Occasionally the model will sample from these near-zero tokens, producing surprising or incoherent output.
+Even at T=0.5, tokens with logit=-1.0 still have *some* probability. Usually tiny — but "tiny" adds
+up when you're generating thousands of tokens. Occasionally the model will sample from these 
+near-zero tokens, producing surprising or incoherent output.
 
-Top-p solves this by asking a different question:
+Top-p(Nucleus Sampling) solves this by asking a different question:
 
 > Instead of "how do I reshape the probabilities?", it asks:  
 > "Which tokens together account for most of the probability mass — and can I just ignore the rest?"
@@ -46,7 +49,7 @@ Top-p says: **"I only want to spend my probability budget on the most important 
 - `p = 0.9` means: "Find the fewest tokens that together use up 90% of the budget — ignore the rest."
 - `p = 1.0` means: "Include everything — no filtering at all."
 
-The set of tokens you keep is called the **nucleus**.
+> The set of tokens you **keep** is called the **nucleus**.
 
 ---
 
@@ -54,8 +57,7 @@ The set of tokens you keep is called the **nucleus**.
 
 Here is the top-p algorithm, step by step:
 
-```
-1. Start with the probability distribution after softmax
+1. Start with the probability distribution **after softmax**
    (optionally after temperature scaling)
 
 2. Sort all tokens from highest to lowest probability
@@ -71,9 +73,9 @@ Here is the top-p algorithm, step by step:
    by the total nucleus probability (so they sum to 1.0 again)
 
 7. Sample from this renormalized nucleus
-```
 
-The key word is **"smallest set"**. Top-p finds the minimum number of tokens needed to cover probability `p`. No more, no less.
+The key word is **"smallest set"**. 
+Top-p finds the **minimum number** of tokens needed to cover probability `p`. No more, no less.
 
 ---
 
@@ -100,6 +102,7 @@ Rank  Token      Probability   Cumulative
 **With p = 0.80:**
 
 Walk down the list until cumulative sum ≥ 0.80:
+
 - After approve: 0.36 → not yet
 - After reject: 0.60 → not yet
 - After review: 0.76 → not yet
@@ -123,7 +126,9 @@ Total:                      1.000  (100%)
 
 Now sample from just these four tokens.
 
-**Notice what changed:** approve went from 36% → 41.9%. All the discarded tokens' probability got redistributed to the survivors. The ranking stays the same, but the numbers shift upward slightly.
+**Notice what changed:** approve went from 36% → 41.9%. All the discarded tokens' probability
+got **redistributed** to the survivors. 
+The ranking stays the same, but the numbers shift upward slightly.
 
 ---
 
@@ -261,7 +266,8 @@ This is why it's called "dynamic" nucleus sampling. The nucleus size *adapts* to
 
 ## Step 5: Temperature vs Top-p — The Exact Difference
 
-This is the comparison that confuses most people. Both affect which token gets sampled — but they work at completely different stages and in completely different ways.
+This is the comparison that confuses most people. Both affect which token gets sampled —
+but they work at completely different stages and in completely different ways.
 
 ### Temperature: changes the shape of the whole distribution
 
@@ -285,22 +291,22 @@ The tail is gone. Zeroed out. Those tokens can never be sampled, no matter what.
 
 ### The operational difference
 
-| Question | Temperature | Top-p |
-|----------|-------------|-------|
-| Can the 10th-ranked token ever be sampled? | Yes, always | Only if p=1.0 |
-| Does the ranking of surviving tokens change? | Yes (e^x math can shift ranks at extreme T) | No, never |
-| Does it help with very long generation loops? | Somewhat | Yes, strongly |
-| What does "more" do? | More temperature = more random across all tokens | More top-p = more tokens eligible |
+| Question                                      | Temperature                                      | Top-p                             |
+|:----------------------------------------------|:-------------------------------------------------|:----------------------------------|
+| Can the 10th-ranked token ever be sampled?    | Yes, always                                      | Only if p=1.0                     |
+| Does the ranking of surviving tokens change?  | Yes (e^x math can shift ranks at extreme T)      | No, never                         |
+| Does it help with very long generation loops? | Somewhat                                         | Yes, strongly                     |
+| What does "more" do?                          | More temperature = more random across all tokens | More top-p = more tokens eligible |
 
 ### When to use which
 
-| Situation | Use Temperature | Use Top-p |
-|-----------|----------------|-----------|
-| Want more variety in phrasing | ✓ | |
-| Want to completely block low-quality tokens | | ✓ |
-| Generating long sequences where tail tokens cause loops | | ✓ |
-| Want smooth gradation from focused to random | ✓ | |
-| Want a hard cutoff with no bleed-through | | ✓ |
+| Situation                                               | Use Temperature  |  Use Top-p  |
+|:--------------------------------------------------------|:----------------:|:-----------:|
+| Want more variety in phrasing                           |        ✓         |             |
+| Want to completely block low-quality tokens             |                  |      ✓      |
+| Generating long sequences where tail tokens cause loops |                  |      ✓      |
+| Want smooth gradation from focused to random            |        ✓         |             |
+| Want a hard cutoff with no bleed-through                |                  |      ✓      |
 
 > **In practice**: Most systems use both. Temperature first (to reshape), then top-p (to trim the tail).
 
@@ -310,6 +316,8 @@ The tail is gone. Zeroed out. Those tokens can never be sampled, no matter what.
 
 The graph `exp2_top_p.png` has 8 panels across 3 rows. Here is how to read each one.
 
+![exp2_top_p.png](../notebooks/exp2_top_p.png)
+
 ---
 
 ### Row 1, Panels 1–3: "Peaked dist, p=X — Nucleus = N tokens"
@@ -317,6 +325,7 @@ The graph `exp2_top_p.png` has 8 panels across 3 rows. Here is how to read each 
 These three bar charts show the nucleus for three different p values applied to the peaked distribution.
 
 **What you're looking at:**
+    
 - X-axis: tokens sorted from highest to lowest probability (rank order, not token index)
 - Y-axis: probability
 - Colored bars: tokens inside the nucleus
@@ -380,6 +389,7 @@ A steep slope means nucleus size grows quickly as p increases — many tokens ar
 This graph shows the raw data that the top-p algorithm is walking through.
 
 **What you're looking at:**
+
 - X-axis: number of tokens accumulated (rank 1, 2, 3, ...)
 - Y-axis: cumulative probability
 - Pink line: cumulative sum for the peaked distribution
@@ -427,6 +437,7 @@ You'll see most bars are colored — a large nucleus. The cutoff line appears la
 This histogram shows what happens when you apply p=0.9 to 500 *randomly generated* distributions.
 
 **What you're looking at:**
+
 - X-axis: nucleus size (how many tokens were included)
 - Y-axis: how many of the 500 distributions produced that nucleus size
 
@@ -494,12 +505,12 @@ close         0.000
 
 **Reading guide:**
 
-| What you see | What it means |
-|---|---|
-| `Entropy: 0.721` | Low but not zero — two tokens survive, so there's some randomness |
-| `approve 0.667` | 66.7% chance — higher than the raw 36% because of renormalization |
-| `reject 0.333` | 33.3% chance — higher than the raw 24% for same reason |
-| All others `0.000` | Completely excluded. These cannot be sampled. |
+| What you see       | What it means                                                     |
+|:-------------------|:------------------------------------------------------------------|
+| `Entropy: 0.721`   | Low but not zero — two tokens survive, so there's some randomness |
+| `approve 0.667`    | 66.7% chance — higher than the raw 36% because of renormalization |
+| `reject 0.333`     | 33.3% chance — higher than the raw 24% for same reason            |
+| All others `0.000` | Completely excluded. These cannot be sampled.                     |
 
 Notice that `approve` went from 36% (baseline) to 66.7% (p=0.20). That's the renormalization at work — cutting reject from the pool would push approve to 100%, but since reject survives the p=0.20 threshold, the remaining 33.3% stays with reject.
 
@@ -524,12 +535,12 @@ close         0.000
 
 **Reading guide:**
 
-| What you see | What it means |
-|---|---|
-| `Entropy: 2.234` | Higher — 6 tokens survive, more randomness |
-| `approve 0.240` | 24.0% — *lower* than its baseline 36% |
-| All six survive | Renormalization spread probability across 6 tokens |
-| Last four `0.000` | Still excluded, even though p=0.80 is fairly high |
+| What you see      | What it means                                      |
+|:------------------|:---------------------------------------------------|
+| `Entropy: 2.234`  | Higher — 6 tokens survive, more randomness         |
+| `approve 0.240`   | 24.0% — *lower* than its baseline 36%              |
+| All six survive   | Renormalization spread probability across 6 tokens |
+| Last four `0.000` | Still excluded, even though p=0.80 is fairly high  |
 
 Wait — `approve` went from 36% → 24%? Yes. When the nucleus gets larger, the renormalization effect works in reverse — the probability gets spread more thinly. The top token's share decreases even though it's still the most likely choice.
 
