@@ -7,6 +7,9 @@
 
 ## First: What You Already Know (And Why It's the Hard Part)
 
+!!! success "Strong foundation"
+    You already covered the highest-impact sampling controls used in day-to-day tuning.
+
 The 6 experiments covered what most engineers spend 80% of their tuning time on:
 
 ```
@@ -26,6 +29,9 @@ Everything below builds on this foundation. If you don't understand these six, t
 
 ### Category 1: Input-Side Parameters
 *These control what goes INTO the model before any sampling happens.*
+
+!!! info "Why this category matters"
+    Input-side controls shape the problem before decoding even starts. In production, these often matter as much as sampling parameters.
 
 ---
 
@@ -52,6 +58,9 @@ Everything below builds on this foundation. If you don't understand these six, t
 
 **The trap**: Setting max_tokens too low causes the model to cut off mid-sentence. Setting it too high wastes money and can cause the model to pad its output unnecessarily.
 
+!!! warning "Common failure mode"
+    Most teams initially over-allocate token budgets "just in case," then discover avoidable cost and latency regressions.
+
 **Learning priority: High.** You'll set this on every single API call you ever make.
 
 ---
@@ -77,6 +86,9 @@ Without the system prompt, the model might say "Yes, that looks like spam. Here'
 
 **The key insight**: System prompts constrain the *content* of outputs; sampling parameters constrain the *distribution* of tokens. Both are necessary tools.
 
+!!! tip "Practical pattern"
+    Lock format and policy constraints in the system prompt, then use temperature/top-p to tune style and variability.
+
 **Learning priority: Critical.** More impactful than any single sampling parameter.
 
 ---
@@ -91,14 +103,17 @@ Without the system prompt, the model might say "Yes, that looks like spam. Here'
 
 **Context window sizes by current generation (as of mid-2025):**
 
-| Model family | Approximate context |
-|---|---|
-| GPT-4o | 128,000 tokens |
-| Claude Sonnet 4.6 | 200,000 tokens |
-| Gemini 1.5 Pro | 1,000,000 tokens |
+| Model family        | Approximate context |
+|:--------------------|:--------------------|
+| GPT-4o              | 128,000 tokens      |
+| Claude Sonnet 4.6   | 200,000 tokens      |
+| Gemini 1.5 Pro      | 1,000,000 tokens    |
 | Smaller/open models | 4,096–32,768 tokens |
 
 **Why "more context" isn't always better**: Models often exhibit "lost in the middle" behavior — they pay more attention to the beginning and end of the context and miss information in the middle. Long contexts also cost more compute.
+
+!!! note "Design implication"
+    Context quality usually beats context quantity. Retrieval quality, chunking, and ordering often outperform simply increasing tokens.
 
 **Learning priority: High.** Determines what tasks are even possible with a given model.
 
@@ -127,10 +142,16 @@ The model will generate "1. ... 2. ... 3. ..." and then stop when it was about t
 
 **Learning priority: Medium-High.** Essential for structured output and agentic pipelines.
 
+!!! example "Quick win"
+    If you need exactly N list items, stop on the token that would start item N+1.
+
 ---
 
 ### Category 2: Decoding Strategy Parameters
 *These control the algorithm used for selecting tokens — beyond simple sampling.*
+
+!!! abstract "Category view"
+    These techniques change *how* candidates are chosen, not just how strongly probabilities are scaled.
 
 ---
 
@@ -155,6 +176,9 @@ Beam search (new concept):
 **Pros**: Tends to produce globally more coherent sequences; better for translation, structured outputs.
 
 **Cons**: More compute (explores multiple paths); can produce generic, "safe" outputs; doesn't work well for creative tasks.
+
+!!! question "When does beam search shine?"
+    Prefer it when you want the single most likely complete sequence (translation, constrained summarization), not diverse ideation.
 
 **Beam width tradeoff:**
 - Beam width=1: greedy decoding (same as sampling with T near 0)
@@ -191,6 +215,9 @@ The threshold *scales with the top token's probability*, so it's automatically m
 
 **Learning priority: Low-Medium.** Worth knowing exists; not yet widely deployed.
 
+!!! note "Adoption snapshot"
+    Min-p is especially common in local/open-source inference stacks and worth tracking for future API support.
+
 ---
 
 #### 2.3 Typical Sampling
@@ -202,6 +229,9 @@ The threshold *scales with the top token's probability*, so it's automatically m
 **Current status**: Mainly a research technique. Rarely available in production APIs.
 
 **Learning priority: Low.** Academic interest; understanding it deepens your intuition about entropy but you won't use it in production soon.
+
+!!! info "Why still learn it"
+    Typical sampling builds strong intuition for entropy-aware filtering even when your provider does not expose it directly.
 
 ---
 
@@ -215,10 +245,16 @@ The threshold *scales with the top token's probability*, so it's automatically m
 
 **Learning priority: Low.** Good conceptual knowledge; practical use is limited.
 
+!!! tip "Mental model"
+    Think of contrastive search as semantic anti-repetition: avoid saying the same thing, not just the same token.
+
 ---
 
 ### Category 3: Generation Quality Controls
 *These affect the quality of the generation process itself.*
+
+!!! info "Production relevance"
+    These controls are often the difference between "works in demo" and "reliable under real traffic."
 
 ---
 
@@ -245,6 +281,9 @@ logit_bias = {
 
 **The catch**: Token IDs are model-specific. The token ID for "cannot" in GPT-4 is different from Claude's tokenizer. You need to look up IDs for your specific model.
 
+!!! warning "Portability risk"
+    Logit-bias rules rarely transfer across model vendors without retokenizing and remapping IDs.
+
 **Learning priority: Medium.** Very useful for production systems with strict output requirements.
 
 ---
@@ -259,6 +298,9 @@ logit_bias = {
 - Research: reproduce exact results from a paper or experiment
 
 **The catch**: Seed-based reproducibility is only guaranteed within the same model version, on the same hardware. Model updates or infrastructure changes can break reproducibility even with the same seed.
+
+!!! danger "Debugging pitfall"
+    Treat seeds as environment-scoped reproducibility, not universal reproducibility across providers or model revisions.
 
 **Example:**
 
@@ -294,6 +336,9 @@ responses = client.generate(
 
 **Cost**: Generating n=5 completions costs approximately 5× as much as n=1.
 
+!!! warning "Cost guardrail"
+    Best-of-n improves quality variance handling, but it scales spend quickly. Pair with strict token budgets and eval-based selection.
+
 **Learning priority: Medium.** Important for evaluation pipelines and any "best of many" approach.
 
 ---
@@ -311,10 +356,16 @@ If you're generating a technical document and want the model to consistently use
 
 **Learning priority: Medium.** Extension of what you already know from Experiment 5.
 
+!!! example "Underused trick"
+    Slight negative frequency penalty can stabilize terminology in long-form technical writing.
+
 ---
 
 ### Category 4: Structured Output Parameters
 *These are newer capabilities for getting reliably formatted outputs.*
+
+!!! success "High leverage area"
+    Structured output controls are among the biggest reliability upgrades available in modern LLM APIs.
 
 ---
 
@@ -338,6 +389,9 @@ response = client.messages.create(
 
 **Learning priority: Very High.** If you build production LLM systems, you will use this constantly.
 
+!!! tip "Implementation pattern"
+    Combine schema-constrained output with post-parse validation and retries for robust pipelines.
+
 ---
 
 #### 4.2 Tool Use / Function Calling
@@ -352,10 +406,16 @@ response = client.messages.create(
 
 **Learning priority: Very High.** Tool use is the foundation of AI agents. Understanding this is essential for building anything beyond simple chatbots.
 
+!!! info "Architecture shift"
+    Tool calling changes LLMs from "text generators" into orchestrators that can read state, act, and recover from tool errors.
+
 ---
 
 ### Category 5: Advanced / Research Parameters
 *These are less commonly tuned in practice but important to know about.*
+
+!!! note "How to use this section"
+    Learn these for conceptual range and ecosystem awareness; apply only when your stack explicitly supports them.
 
 ---
 
@@ -386,6 +446,9 @@ response = client.messages.create(
 
 **Learning priority: Low.** Interesting conceptually; niche in practice.
 
+!!! abstract "Core idea"
+    Fixed entropy target, adaptive temperature control.
+
 ---
 
 #### 5.3 Speculative Decoding
@@ -397,6 +460,9 @@ response = client.messages.create(
 **Parameters**: Usually handled automatically by inference infrastructure. No user-facing knobs.
 
 **Learning priority: Low for application engineers, High for ML infrastructure engineers.** You need to know it exists and what it does; you probably won't configure it directly.
+
+!!! info "Important distinction"
+    Speculative decoding is primarily a latency/cost optimization, not a behavior-quality tuning knob.
 
 ---
 
@@ -412,6 +478,9 @@ response = client.messages.create(
 
 ### Category 6: Inference Infrastructure Parameters
 *These don't change the model's outputs directly but matter enormously in production.*
+
+!!! warning "Operational reality"
+    Many production incidents are infra-parameter issues (throughput, memory, cache policy), not prompt issues.
 
 ---
 
@@ -433,11 +502,17 @@ response = client.messages.create(
 
 **Learning priority: Medium-High if you run local/open-source models. Low if you only use cloud APIs.**
 
+!!! note "Rule of thumb"
+    Evaluate quality on task-specific benchmarks before rolling aggressive quantization into user-facing paths.
+
 ---
 
 ## The Parameters That Matter Most — Priority Ranking
 
 If you're new and want to know where to focus your learning:
+
+!!! success "Use this as your checklist"
+    Tier 1 -> Tier 2 -> Tier 3 is designed to maximize practical impact per hour of study.
 
 ### Tier 1: Learn These Now (Immediate Practical Impact)
 ```
@@ -477,6 +552,9 @@ If you're new and want to know where to focus your learning:
 
 Parameters are just one piece. Here is the full picture of what a well-rounded AI engineer knows, organized by layer:
 
+!!! abstract "Big picture"
+    Sampling is one layer in a full system lifecycle: design, generation, evaluation, retrieval, adaptation, and operations.
+
 ```
 ┌──────────────────────────────────────────────────────┐
 │                  APPLICATION LAYER                   │
@@ -511,6 +589,9 @@ Parameters are just one piece. Here is the full picture of what a well-rounded A
 ---
 
 ## Suggested Learning Order After Experiment 6
+
+!!! tip "Execution strategy"
+    Build one small project per phase, and attach an eval harness early so each change is measurable.
 
 ### Month 1–2: Prompt Engineering (Highest ROI)
 
@@ -550,6 +631,9 @@ Most engineers skip evaluation and pay for it later:
 
 **Key insight**: If you can't measure it, you can't improve it. Every parameter change you make should be validated against a metric — exactly what Experiment 6's checklist advised.
 
+!!! danger "Skip this and you guess"
+    Teams that skip evals often ship regressions they cannot detect or explain.
+
 ---
 
 ### Month 4–6: RAG Systems (Practical for Most Builders)
@@ -577,49 +661,58 @@ Fine-tuning is often *not* the right answer, but when it is, it's powerful:
 
 **Important caveat**: Many engineers fine-tune too early. Exhaust prompt engineering and parameter tuning first. Fine-tuning is expensive and difficult to iterate on quickly.
 
+!!! warning "Decision gate"
+    Fine-tune only after prompt/system/tooling/eval baselines are strong and well-instrumented.
+
 ---
 
 ## The One-Page Summary: What Matters When
+
+!!! info "Fast triage"
+    Use the guide below as a first-pass diagnosis map before changing multiple knobs at once.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    DEBUGGING GUIDE                          │
 │                                                             │
-│  Output is wrong / hallucinating:                          │
-│    → Fix the prompt first (not the parameters)             │
-│    → Add retrieval (RAG) for factual grounding             │
-│    → Fine-tune only as a last resort                       │
+│  Output is wrong / hallucinating:                           │
+│    → Fix the prompt first (not the parameters)              │
+│    → Add retrieval (RAG) for factual grounding              │
+│    → Fine-tune only as a last resort                        │
 │                                                             │
-│  Output is too random / incoherent:                        │
+│  Output is too random / incoherent:                         │
 │    → Lower temperature                                      │
-│    → Tighten top-p                                         │
-│    → Check for high repetition penalty (back off)          │
+│    → Tighten top-p                                          │
+│    → Check for high repetition penalty (back off)           │
 │                                                             │
-│  Output is too repetitive / robotic:                       │
+│  Output is too repetitive / robotic:                        │
 │    → Raise temperature slightly                             │
-│    → Add light repetition penalty (start at 1.1)           │
-│    → Check if top-k is too restrictive                     │
+│    → Add light repetition penalty (start at 1.1)            │
+│    → Check if top-k is too restrictive                      │
 │                                                             │
-│  Output format is inconsistent:                            │
-│    → Use JSON mode / structured outputs                    │
+│  Output format is inconsistent:                             │
+│    → Use JSON mode / structured outputs                     │
 │    → Add stop sequences                                     │
-│    → Improve system prompt format instructions             │
+│    → Improve system prompt format instructions              │
 │                                                             │
-│  Output is too long / cuts off:                            │
+│  Output is too long / cuts off:                             │
 │    → Adjust max_tokens                                      │
-│    → Check context window usage                            │
-│    → Use stop sequences to enforce length                  │
+│    → Check context window usage                             │
+│    → Use stop sequences to enforce length                   │
 │                                                             │
-│  Output is slow / expensive:                               │
+│  Output is slow / expensive:                                │
 │    → Reduce max_tokens                                      │
-│    → Use prompt caching (same system prompt across calls)  │
-│    → Consider a smaller model (check if quality holds)     │
+│    → Use prompt caching (same system prompt across calls)   │
+│    → Consider a smaller model (check if quality holds)      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Honest Assessment: What Makes a Good AI Engineer
+
+!!! success "Core principle"
+    High-performing AI engineering is disciplined diagnosis + measurement + system-level thinking.
 
 After studying parameters, the skill that separates good AI engineers from great ones is not knowing more parameters. It's:
 
@@ -653,6 +746,9 @@ Reading deepens knowledge; building ingrains it. Here are four projects that cov
 | **Multi-step research agent** | ReAct pattern, tool chaining, error handling, agent reliability                         |
 
 Build them in this order. Each one introduces new concepts while reusing what you already know.
+
+!!! example "Portfolio strategy"
+    Turn each project into a mini case study: problem, baseline, parameter choices, eval results, and lessons learned.
 
 ---
 

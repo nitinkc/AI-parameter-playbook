@@ -79,6 +79,7 @@ nav:
       - 4 - Combined Filters: learning/04-combined.md
       - 5 - Repetition Penalties: learning/05-repetition.md
       - 6 - Real Use Cases: learning/06-use-cases.md
+      - 7 - Beyond: learning/07-beyond-obvious.md
   - "⚙️ Parameter Reference":
        - Parameter Map: parameters/parameter-map.md
        - Decoding Controls: parameters/decoding.md
