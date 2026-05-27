@@ -1,4 +1,4 @@
-# Experiment 3: Top-k Sampling — A Step-by-Step Learning Guide
+# Experiment 3: Top-k Sampling 
 
 > **What this file is**: A beginner-friendly, ground-up explanation of Experiment 3 (Top-k Sweep).  
 > **Who it's for**: Anyone who completed Experiments 1 and 2 and wants to understand top-k — including exactly where it excels and where it fails compared to top-p.  

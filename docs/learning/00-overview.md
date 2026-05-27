@@ -35,14 +35,14 @@ Those are directionally true, but not enough for reliable tuning. The way to bui
 
 ## 6-Experiment Learning Path
 
-| #  | Experiment           | Focus                                                 | Time   | Takeaway                                                |
-|:---|:---------------------|:------------------------------------------------------|:-------|:--------------------------------------------------------|
-| 1  | Temperature Sweep    | How does randomness change with temperature?          | 5 min  | Temperature directly reshapes probability distributions |
-| 2  | Top-p (Nucleus)      | How does top-p restrict candidates?                   | 5 min  | Top-p selects a *dynamic* set of tokens                |
-| 3  | Top-k                | How does top-k differ from top-p?                     | 5 min  | Top-k is a *fixed-size* ranked cutoff                  |
-| 4  | Combined Filters     | What if you mix temperature + top-p + top-k?          | 10 min | Order matters; interactions can surprise you           |
-| 5  | Repetition Penalties | How do penalties discourage repeated tokens?          | 5 min  | Penalties reduce repetition pressure before sampling   |
-| 6  | Real Use Cases       | How do you tune for classification vs. summarization? | 15 min | Different tasks need different strategies              |
+| #  | Experiment           | Focus                                                 | Takeaway                                                |
+|:---|:---------------------|:------------------------------------------------------|:--------------------------------------------------------|
+| 1  | Temperature Sweep    | How does randomness change with temperature?          | Temperature directly reshapes probability distributions |
+| 2  | Top-p (Nucleus)      | How does top-p restrict candidates?                   | Top-p selects a *dynamic* set of tokens                |
+| 3  | Top-k                | How does top-k differ from top-p?                     | Top-k is a *fixed-size* ranked cutoff                  |
+| 4  | Combined Filters     | What if you mix temperature + top-p + top-k?          | Order matters; interactions can surprise you           |
+| 5  | Repetition Penalties | How do penalties discourage repeated tokens?          | Penalties reduce repetition pressure before sampling   |
+| 6  | Real Use Cases       | How do you tune for classification vs. summarization? | Different tasks need different strategies              |
 
 **Total time: ~45 minutes** for practical parameter intuition.
 

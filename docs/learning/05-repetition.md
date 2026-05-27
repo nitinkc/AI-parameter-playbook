@@ -1,5 +1,4 @@
-# Experiment 5: Repetition Penalties — A Step-by-Step Learning Guide
-
+# Experiment 5: Repetition Penalties
 > **What this file is**: A beginner-friendly, ground-up explanation of Experiment 5 (Repetition Penalties).  
 > **Who it's for**: Anyone who completed Experiments 1–4 and wants to understand repetition penalties — including the math, the failure modes, and why they're nothing like top-k or top-p.  
 > **What you'll get**: The ability to diagnose repetition problems in real LLM output, choose the right penalty strength and lookback window, and understand the difference between multiplicative, presence, and frequency penalties.
